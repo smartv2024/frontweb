@@ -1,0 +1,108 @@
+<div class="container ad-list-container">
+    <h2 class="list-title">Archived Advertisement List</h2>
+  
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="search-container">
+          <input
+            type="text"
+            class="form-control search-input"
+            placeholder="Search advertisements..."
+            [(ngModel)]="searchTerm"
+          />
+        </div>
+      </div>
+    </div>
+  
+    <!-- Advertisement Table -->
+    <div class="table-responsive">
+      <table class="table ad-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Orientation</th>
+            <th>Video URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ad of filteredAdvertisements(); let i = index">
+            <td>{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
+            <td>{{ ad.name }}</td>
+            <td>{{ ad.description }}</td>
+            <td>{{ ad.orientation | titlecase }}</td>
+            <td>
+              <a
+                href="javascript:void(0)"
+                class="video-link"
+                (click)="openModal(ad.videoUrl)"
+              >
+                <i class="fas fa-video me-2"></i> View Video
+              </a>
+            </td>
+            <td>
+              <button class="btn btn-danger" (click)="confirmArchive(ad._id)">
+                <i class="fas fa-undo me-2"></i> Unarchive
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Pagination -->
+    <div class="pagination-container">
+      <button
+        class="btn btn-secondary me-2"
+        [disabled]="currentPage === 1"
+        (click)="previousPage()"
+      >
+        Previous
+      </button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button
+        class="btn btn-secondary ms-2"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        Next
+      </button>
+    </div>
+  
+    <!-- Custom Modal for Video -->
+    <div class="custom-modal" *ngIf="isModalOpen">
+      <div class="modal-overlay" (click)="closeModal()"></div>
+      <div class="modal-content">
+        <button class="modal-close" (click)="closeModal()">✖</button>
+        <h5 class="modal-title">Advertisement Video</h5>
+        <div class="video-container">
+          <video
+            *ngIf="selectedVideoUrl"
+            [src]="selectedVideoUrl"
+            controls
+            class="modal-video"
+          ></video>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Confirmation Dialog -->
+    <div class="custom-modal" *ngIf="isConfirmDialogOpen">
+      <div class="modal-overlay" (click)="closeConfirmDialog()"></div>
+      <div class="modal-content">
+        <h5 class="modal-title">Confirm Unarchive</h5>
+        <p>Are you sure you want to unarchive this advertisement?</p>
+        <div class="dialog-actions">
+          <button class="btn btn-danger" (click)="unarchiveAd(archivingAdId)">
+            Yes
+          </button>
+          <button class="btn btn-secondary" (click)="closeConfirmDialog()">
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  

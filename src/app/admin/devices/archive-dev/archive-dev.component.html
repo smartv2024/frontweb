@@ -1,0 +1,199 @@
+<div class="container py-4 ad-list-container">
+    <h2 class="list-title text-center">Archived Devices List</h2>
+  
+    <!-- Search and Add Device Section -->
+    <div class="row align-items-center mb-3">
+      
+      <div class="col-md-6">
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control search-input"
+            placeholder="Search devices..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+          />
+          <span class="input-group-text bg-primary text-white">
+            <i class="fas fa-search"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Devices Table -->
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-striped table-hover">
+        <thead class="table-primary">
+          <tr>
+            <th>#</th>
+            <th>Device ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Orientation</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let device of getPaginatedDevices(); let i = index">
+            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+            <td>{{ device.deviceId }}</td>
+            <td>{{ device.name }}</td>
+            <td>{{ device.description }}</td>
+            <td>{{ device.orientation | titlecase }}</td>
+            <td>
+             
+              <button
+                class="btn btn-success btn-sm"
+                (click)="confirmArchive(device._id)"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmArchiveModal"
+              >
+                <i class="fas fa-archive"></i> UnArchive
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Pagination Controls -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+      <button
+        class="btn btn-outline-primary btn-sm"
+        [disabled]="currentPage === 1"
+        (click)="previousPage()"
+      >
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <span class="fw-bold text-primary">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        class="btn btn-outline-primary btn-sm"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  
+    <!-- Edit Device Modal -->
+    <div
+      class="modal fade"
+      id="editDeviceModal"
+      tabindex="-1"
+      aria-labelledby="editDeviceModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="editDeviceModalLabel">Edit Device</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form (ngSubmit)="updateDevice()">
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input
+                  id="name"
+                  class="form-control"
+                  [(ngModel)]="editDeviceObject.name"
+                  name="name"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea
+                  id="description"
+                  class="form-control"
+                  [(ngModel)]="editDeviceObject.description"
+                  name="description"
+                  required
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="orientation" class="form-label">Orientation</label>
+                <select
+                  id="orientation"
+                  class="form-select"
+                  [(ngModel)]="editDeviceObject.orientation"
+                  name="orientation"
+                  required
+                >
+                  <option *ngFor="let orientation of ['portrait', 'landscape']" [value]="orientation">
+                    {{ orientation | titlecase }}
+                  </option>
+                </select>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Confirmation Dialog -->
+    <div
+      class="modal fade"
+      id="confirmArchiveModal"
+      tabindex="-1"
+      aria-labelledby="confirmArchiveModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="confirmArchiveModalLabel">
+              Confirm UnArchive
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p class="fw-bold text-danger">Are you sure you want to unarchive this device?</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              class="btn btn-danger"
+              (click)="unarchiveDevices()"
+              data-bs-dismiss="modal"
+            >
+              Yes
+            </button>
+            <button
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              No
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  

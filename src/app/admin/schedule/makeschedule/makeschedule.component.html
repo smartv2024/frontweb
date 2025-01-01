@@ -1,0 +1,121 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h2>Create Schedule</h2>
+      
+      <!-- Connection Status -->
+    
+
+
+      <!-- Success Alert -->
+      <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ success }}
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="text-center my-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Schedule Form -->
+      <form *ngIf="!loading" (ngSubmit)="createSchedule()" class="needs-validation" novalidate>
+        <!-- Device Info -->
+        <div class="mb-3">
+          <h4>Device Information</h4>
+          <div *ngIf="device" class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ device.name }}</h5>
+              <p class="card-text">ID: {{ device._id }}</p>
+              <p class="card-text">Location: {{ device.location || 'Not specified' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Advertisements -->
+        <div class="mb-3">
+          <h4>Selected Advertisements</h4>
+          <div class="list-group">
+            <div *ngFor="let ad of ads" class="list-group-item">
+              <h5 class="mb-1">{{ ad.name }}</h5>
+              <p class="mb-1">Duration: {{ ad.duration }} seconds</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Settings -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h4 class="card-title">Schedule Settings</h4>
+            
+            <!-- Start Time -->
+            <div class="mb-3">
+              <label for="startTime" class="form-label">Start Time</label>
+              <input 
+                type="datetime-local" 
+                class="form-control" 
+                id="startTime" 
+                [(ngModel)]="startTime" 
+                name="startTime"
+                required>
+            </div>
+
+            <!-- Play Time -->
+            <div class="mb-3">
+              <label for="playTime" class="form-label">Play Time (minutes)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                id="playTime" 
+                [(ngModel)]="playTime" 
+                name="playTime"
+                min="1"
+                required>
+            </div>
+
+            <!-- Repeat -->
+            <div class="mb-3">
+              <label for="repeat" class="form-label">Repeat</label>
+              <select 
+                class="form-select" 
+                id="repeat" 
+                [(ngModel)]="repeat" 
+                name="repeat"
+                required>
+                <option value="once">Once</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+
+            <!-- Play Mode -->
+            <div class="mb-3">
+              <label for="playMode" class="form-label">Play Mode</label>
+              <select 
+                class="form-select" 
+                id="playMode" 
+                [(ngModel)]="playMode" 
+                name="playMode"
+                required>
+                <option value="loop">Loop</option>
+                <option value="sequence">Sequence</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+           >
+            {{ loading ? 'Creating Schedule...' : 'Create Schedule' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

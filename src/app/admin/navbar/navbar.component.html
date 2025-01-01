@@ -1,0 +1,141 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
+  <div class="container">
+    <!-- Brand Logo -->
+    <a class="navbar-brand" routerLink="/">
+      <img
+        src="assets/logo.png"
+        alt="Logo"
+        width="40"
+        height="40"
+        class="d-inline-block align-text-top brand-logo"
+      />
+      MyApp
+    </a>
+
+    <!-- Toggler Button for Mobile View -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Links -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <!-- Accueil -->
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="/admin"
+            routerLinkActive="active-link"
+          >
+            <i class="fas fa-home me-2"></i> Accueil
+          </a>
+        </li>
+
+        <!-- Advertisement Dropdown -->
+        <!-- Advertisement Dropdown -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="advertisementDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="fas fa-bullhorn me-2"></i> Advertisement
+          </a>
+          <ul
+            class="dropdown-menu shadow-lg"
+            aria-labelledby="advertisementDropdown"
+          >
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/ads"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-list me-2"></i> Advertisement List
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/newAds"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-plus-circle me-2"></i> Add Advertisement
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/archivedAds"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-archive me-2"></i> View Archived
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Devices Dropdown -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="devicesDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="fas fa-tablet-alt me-2"></i> Devices
+          </a>
+          <ul class="dropdown-menu shadow-lg" aria-labelledby="devicesDropdown">
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/Devices"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-list me-2"></i> Device List
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/addDevices"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-plus-circle me-2"></i> Add Device
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/archivedDevices"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-archive me-2"></i> View Archived
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Logout Button -->
+        <li class="nav-item">
+          <a class="btn btn-glow ms-3" href="#">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

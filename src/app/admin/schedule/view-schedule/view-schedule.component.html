@@ -1,0 +1,159 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Schedule Details</h2>
+        <div>
+          <button class="btn btn-primary me-2" (click)="toggleEdit()" *ngIf="!isEditing">Edit Schedule</button>
+          <button class="btn btn-secondary" (click)="goBack()">Back to List</button>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger" role="alert">
+        {{ error }}
+      </div>
+
+      <div *ngIf="success" class="alert alert-success" role="alert">
+        {{ success }}
+      </div>
+
+      <div *ngIf="!loading && schedule" class="card">
+        <div class="card-body">
+          <!-- Edit Form -->
+          <form *ngIf="isEditing" [formGroup]="updateForm" (ngSubmit)="updateSchedule()" class="mb-4">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Device</label>
+                <select class="form-select" formControlName="deviceId">
+                  <option value="">Select Device</option>
+                  <option *ngFor="let device of devices" [value]="device._id">
+                    {{ device.name }}
+                  </option>
+                </select>
+                <div *ngIf="updateForm.get('deviceId')?.touched && updateForm.get('deviceId')?.invalid" class="text-danger">
+                  Device is required
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Advertisements</label>
+                <div class="card">
+                  <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                    <div class="form-check" *ngFor="let ad of advertisements">
+                      <input class="form-check-input" 
+                             type="checkbox" 
+                             [id]="'ad_' + ad._id"
+                             [checked]="isAdvertisementSelected(ad._id)"
+                             (change)="toggleAdvertisement(ad._id)">
+                      <label class="form-check-label" [for]="'ad_' + ad._id">
+                        {{ ad.name }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+               
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Start Time</label>
+                <input type="datetime-local" class="form-control" formControlName="startTime">
+                <div *ngIf="updateForm.get('startTime')?.touched && updateForm.get('startTime')?.invalid" class="text-danger">
+                  Start time is required
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Play Time (seconds)</label>
+                <input type="number" class="form-control" formControlName="playTime">
+                <div *ngIf="updateForm.get('playTime')?.touched && updateForm.get('playTime')?.invalid" class="text-danger">
+                  <span *ngIf="updateForm.get('playTime')?.errors?.['required']">Play time is required</span>
+                  <span *ngIf="updateForm.get('playTime')?.errors?.['min']">Play time must be greater than 0</span>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Play Mode</label>
+                <select class="form-select" formControlName="playMode">
+                  <option value="sequence">Sequence</option>
+                  <option value="random">Random</option>
+                </select>
+                <div *ngIf="updateForm.get('playMode')?.touched && updateForm.get('playMode')?.invalid" class="text-danger">
+                  Play mode is required
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="form-check mt-4">
+                  <input type="checkbox" class="form-check-input" formControlName="repeat" id="repeat">
+                  <label class="form-check-label" for="repeat">Repeat</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" (click)="toggleEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" >
+                {{ loading ? 'Updating...' : 'Update Schedule' }}
+              </button>
+            </div>
+          </form>
+
+          <!-- View Mode -->
+          <div *ngIf="!isEditing">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h4>Device Information</h4>
+                <p><strong>Device Name:</strong> {{ schedule.deviceId?.name }}</p>
+                <p><strong>Description:</strong> {{ schedule.deviceId?.description }}</p>
+              </div>
+              <div class="col-md-6">
+                <h4>Schedule Information</h4>
+                <p><strong>Start Time:</strong> {{ schedule.startTime | date:'medium' }}</p>
+                <p><strong>End Time:</strong> {{ schedule.endTime | date:'medium' }}</p>
+                <p><strong>Play Mode:</strong> {{ schedule.playMode }}</p>
+                <p><strong>Repeat:</strong> {{ schedule.repeat ? 'Yes' : 'No' }}</p>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <h4>Advertisements</h4>
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Orientation</th>
+                        <th>Video</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let ad of schedule.advertisementIds">
+                        <td>{{ ad.name }}</td>
+                        <td>{{ ad.description }}</td>
+                        <td>{{ ad.orientation }}</td>
+                        <td>
+                          <video *ngIf="ad.videoUrl" width="200" controls>
+                            <source [src]="ad.videoUrl" type="video/mp4">
+                            Your browser does not support the video tag.
+                          </video>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,87 @@
+<div class="container device-form-container">
+    <div class="form-card">
+        <div class="back-button mb-5">
+            <button
+              class="btn-back"
+              (click)="navigateToList()"
+            >
+              <i class="fas fa-arrow-left me-2"></i>Back to List
+            </button>
+          </div>
+      <h2 class="form-title">
+        <i class="fas fa-tablet-alt me-2"></i>Add Device
+      </h2>
+  
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
+      </div>
+  
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
+      </div>
+  
+      <form (ngSubmit)="addDevice()">
+        <!-- Device Name -->
+        <div class="form-group">
+          <label for="name">
+            <i class="fas fa-tag me-2"></i>Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            class="form-control"
+            [(ngModel)]="deviceObject.name"
+            name="name"
+            required
+          />
+        </div>
+  
+        <!-- Device Description -->
+        <div class="form-group">
+          <label for="description">
+            <i class="fas fa-align-left me-2"></i>Description
+          </label>
+          <textarea
+            id="description"
+            class="form-control"
+            [(ngModel)]="deviceObject.description"
+            name="description"
+            rows="3"
+            required
+          ></textarea>
+        </div>
+  
+        <!-- Device Orientation -->
+        <div class="form-group">
+          <label for="orientation">
+            <i class="fas fa-arrows-alt me-2"></i>Orientation
+          </label>
+          <select
+            id="orientation"
+            class="form-control"
+            [(ngModel)]="deviceObject.orientation"
+            name="orientation"
+            required
+          >
+            <option *ngFor="let orientation of orientations" [value]="orientation">
+              {{ orientation | titlecase }}
+            </option>
+          </select>
+        </div>
+  
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="isSubmitting"
+        >
+          <span *ngIf="isSubmitting" class="spinner"></span>
+          <i *ngIf="!isSubmitting" class="fas fa-paper-plane me-2"></i>
+          <span *ngIf="!isSubmitting">Submit</span>
+        </button>
+      </form>
+    </div>
+  </div>
+  

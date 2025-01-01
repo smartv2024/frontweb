@@ -1,0 +1,174 @@
+<div class="container ad-list-container">
+    <h2 class="list-title">Advertisement List</h2>
+
+    <div class="row">
+        <div class="col">
+            <div class="header-section">
+                <button class="btn btn-primary add-ad-btn mb-2" (click)="navigateToAddAdvertisement()">
+                  <i class="fas fa-plus-circle me-2"></i> Add Advertisement
+                </button>
+              </div>
+        </div>
+
+        <div class="col">
+            <div class="search-container">
+                <input
+                  type="text"
+                  class="form-control search-input"
+                  placeholder="Search advertisements..."
+                  [(ngModel)]="searchTerm"
+                />
+              </div>
+        </div>
+    </div>
+    
+   
+    
+    <!-- Advertisement Table -->
+    <div class="table-responsive">
+      <table class="table ad-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Orientation</th>
+            <th>Video URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ad of filteredAdvertisements(); let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ ad.name }}</td>
+            <td>{{ ad.description }}</td>
+            <td>{{ ad.orientation | titlecase }}</td>
+            <td>
+              <a
+                href="javascript:void(0)"
+                class="video-link"
+                (click)="openModal(ad.videoUrl)"
+              >
+                <i class="fas fa-video me-2"></i> View Video
+              </a>
+            </td>
+            <td>
+              <button class="btn btn-warning me-2" (click)="openEditModal(ad)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button
+                class="btn btn-archive"
+                (click)="confirmArchive(ad._id)"
+                *ngIf="!ad.archived"
+              >
+                <i class="fas fa-archive"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-container">
+        <button
+          class="btn btn-secondary me-2"
+          [disabled]="currentPage === 1"
+          (click)="previousPage()"
+        >
+          Previous
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button
+          class="btn btn-secondary ms-2"
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    
+    <!-- Custom Modal for Video -->
+    <div class="custom-modal" *ngIf="isModalOpen">
+      <div class="modal-overlay" (click)="closeModal()"></div>
+      <div class="modal-content">
+        <button class="modal-close" (click)="closeModal()">✖</button>
+        <h5 class="modal-title">Advertisement Video</h5>
+        <div class="video-container">
+          <video
+            *ngIf="selectedVideoUrl"
+            [src]="selectedVideoUrl"
+            controls
+            class="modal-video"
+          ></video>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Custom Modal for Editing -->
+    <div class="edit-modal" *ngIf="isEditModalOpen">
+      <div class="edit-modal-overlay" (click)="closeEditModal()"></div>
+      <div class="edit-modal-content">
+        <button class="modal-close" (click)="closeEditModal()">✖</button>
+        <h5 class="modal-title">Edit Advertisement</h5>
+        <form (ngSubmit)="updateAdvertisement()">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input
+              id="name"
+              class="form-control"
+              [(ngModel)]="editAdvertisementObject.name"
+              name="name"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              class="form-control"
+              [(ngModel)]="editAdvertisementObject.description"
+              name="description"
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="orientation">Orientation</label>
+            <select
+              id="orientation"
+              class="form-control"
+              [(ngModel)]="editAdvertisementObject.orientation"
+              name="orientation"
+            >
+              <option *ngFor="let orientation of orientations" [value]="orientation">
+                {{ orientation | titlecase }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="videoUrl">Video URL</label>
+            <input
+              id="videoUrl"
+              class="form-control"
+              [(ngModel)]="editAdvertisementObject.videoUrl"
+              name="videoUrl"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Confirmation Dialog -->
+    <div class="custom-modal" *ngIf="isConfirmDialogOpen">
+      <div class="modal-overlay" (click)="closeConfirmDialog()"></div>
+      <div class="modal-content">
+        <h5 class="modal-title">Confirm Archive</h5>
+        <p>Are you sure you want to archive this advertisement?</p>
+        <div class="dialog-actions">
+          <button class="btn btn-danger" (click)="archiveAd(archivingAdId)">Yes</button>
+          <button class="btn btn-secondary" (click)="closeConfirmDialog()">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  

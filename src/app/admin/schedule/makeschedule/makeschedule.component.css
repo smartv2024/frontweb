@@ -1,0 +1,87 @@
+/* Add shadow to cards and style the video thumbnails */
+.card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border-radius: 8px;
+  }
+  
+  .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .video-container {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .video-thumbnail {
+    width: 100%;
+    max-height: 250px; /* Adjust size of the video */
+    object-fit: cover;
+  }
+  
+  .form-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-container .form-label {
+    font-weight: 600;
+  }
+  
+  .form-container .form-control,
+  .form-container .form-select {
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-container .btn {
+    font-weight: bold;
+    border-radius: 8px;
+  }
+  
+  .selected-ads .ad-card {
+    display: inline-block;
+    width: 100%;
+    max-width: 350px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .selected-ads .ad-card:last-child {
+    margin-right: 0;
+  }
+  
+  h2, h4 {
+    font-weight: 700;
+    color: #333;
+  }
+  
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  .text-primary {
+    color: #007bff;
+  }
+  
+  .mb-4, .mb-5 {
+    margin-bottom: 30px !important;
+  }
+  
+  .mt-5 {
+    margin-top: 50px;
+  }
+  
+  .w-100 {
+    width: 100% !important;
+  }
+  

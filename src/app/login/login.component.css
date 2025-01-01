@@ -1,0 +1,100 @@
+/* Fullscreen background with dark overlay */
+.login-container {
+    background: url('../../../public/images/smartTVPR.jpg') no-repeat center center/cover; /* Use your uploaded image path */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    /* Add a dark overlay for the image */
+    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    background-blend-mode: darken; /* Blend the dark overlay with the image */
+  }
+  
+  /* Form container with stronger blur and darker appearance */
+  .form-container {
+    background: rgba(255, 255, 255, 0.15); /* More transparent white for a frosted glass effect */
+    backdrop-filter: blur(15px); /* Stronger blur effect */
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); /* Stronger shadow for more depth */
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 400px; /* Makes the form responsive */
+    text-align: center;
+    color: #fff; /* Change text color to white for contrast */
+  }
+  
+  /* Form input styling */
+  .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #fff; /* White text for better visibility on a darker card */
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent input background */
+    color: #333; /* Dark input text */
+  }
+  
+  .form-group input::placeholder {
+    color: #999; /* Placeholder color */
+  }
+  
+  /* Spinner styles */
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Button styling */
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    min-height: 36px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-submit:hover {
+    background: #0056b3;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .form-container {
+      padding: 20px;
+    }
+  }
