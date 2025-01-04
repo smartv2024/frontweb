@@ -15,12 +15,10 @@ export class AdminComponent {
   }
 
   private checkAuthentication(): void {
-    if (typeof window !== 'undefined') {
-      const authToken = sessionStorage.getItem('authToken');
-      if (!authToken) {
-        // Redirect to login page
-        this.router.navigate(['/login']);
-      }
+    const authToken = sessionStorage.getItem('authToken');
+    if (!authToken) {
+      // Redirect to login page
+      this.router.navigate(['/login']);
     }
   }
 }

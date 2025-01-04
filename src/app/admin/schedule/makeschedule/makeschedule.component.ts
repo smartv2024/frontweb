@@ -1,8 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../admin.service';
 import { SocketService } from '../../../services/socket.service';
-import { Subscription } from 'rxjs';
+import { catchError, of, Subscription, timeout } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
+
 
 @Component({
   selector: 'app-makeschedule',
@@ -30,11 +32,14 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private adminService: AdminService,
-    private socketService: SocketService
+    private socketService: SocketService,
+    @Inject(PLATFORM_ID) private platformId: Object,
+
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.push(
+    if (isPlatformBrowser(this.platformId)) {
+
       this.route.queryParams.subscribe((params) => {
         this.deviceId = params['deviceId'];
         this.selectedAds = params['ads'] ? params['ads'].split(',') : [];
@@ -44,15 +49,22 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
           this.socketService.joinRoom(this.deviceId);
         }
       })
-    );
-
-    this.subscriptions.push(
-      this.socketService.getConnectionStatus().subscribe((connected) => {
+    
+    }
+   
+      this.socketService.getConnectionStatus().pipe(
+        timeout(30000), // 30 seconds timeout
+        catchError(error => {
+          this.error = 'Request timed out';
+          this.loading = false;
+          return of(null); // Return an observable to keep the stream alive
+        })
+      ).subscribe((connected) => {
         if (!connected) {
           this.error = 'Disconnected from server';
         }
       })
-    );
+    
 
     this.socketService.listen<any>('scheduleError').subscribe((error) => {
       this.error = error.message || 'Error creating schedule';
@@ -62,7 +74,14 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
 
   private loadDeviceAndAds(): void {
     this.loading = true;
-    this.adminService.getDevicesById(this.deviceId).subscribe(
+    this.adminService.getDevicesById(this.deviceId).pipe(
+      timeout(30000), // 30 seconds timeout
+      catchError(error => {
+        this.error = 'Request timed out';
+        this.loading = false;
+        return of(null); // Return an observable to keep the stream alive
+      })
+    ).subscribe(
       (device) => {
         this.device = device.data;
         this.loading = false;
