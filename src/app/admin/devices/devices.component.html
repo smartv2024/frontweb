@@ -34,6 +34,7 @@
           <th>Name</th>
           <th>Description</th>
           <th>Orientation</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -45,30 +46,57 @@
           <td>{{ device.description }}</td>
           <td>{{ device.orientation | titlecase }}</td>
           <td>
-            <button
-              class="btn btn-warning btn-sm me-2"
-              (click)="openEditModal(device)"
-            >
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button
-              class="btn btn-danger btn-sm me-2"
-              (click)="confirmArchive(device._id)"
-            >
-              <i class="fas fa-archive"></i> Archive
-            </button>
-            <button
-              class="btn btn-info btn-sm"
-              (click)="openScheduleModal(device)"
-            >
-              <i class="fas fa-tv"></i> Schedule
-            </button>
+            <div class="d-flex align-items-center">
+              <i [ngClass]="{
+                'fa-solid fa-link text-success fs-5': device.isPaired === true,
+                'fas fa-times-circle text-danger fs-5': device.isPaired === false
+              }" [title]="device.isPaired ? 'Device Paired' : 'Device Not Paired'"></i>
+              <span class="ms-2 small" [ngClass]="{
+                'text-success': device.isPaired === true,
+                'text-danger': device.isPaired === false
+              }">{{ device.isPaired ? 'Paired' : 'Not Paired' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+                id="actionsDropdown{{ device._id }}"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Actions
+              </button>
+              <ul class="dropdown-menu" [attr.aria-labelledby]="'actionsDropdown' + device._id">
+                <li>
+                  <button class="dropdown-item" (click)="openEditModal(device)">
+                    <i class="fas fa-edit me-2"></i> Edit
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" (click)="confirmArchive(device._id)">
+                    <i class="fas fa-archive me-2"></i> Archive
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" (click)="openScheduleModal(device)">
+                    <i class="fas fa-tv me-2"></i> Schedule
+                  </button>
+                </li>
+                <!-- Updated condition for unpair button -->
+                <li *ngIf="device.isPaired === true">
+                  <button class="dropdown-item text-danger" (click)="unpairageDevice(device.deviceId)" >
+                    <i class="fas fa-unlink me-2"></i> Unpair
+                  </button>
+                </li>
+              </ul>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-
   <!-- Pagination Controls -->
   <div class="d-flex justify-content-between align-items-center mt-4">
     <button
@@ -141,6 +169,101 @@
         <div class="modal-footer">
           <button class="btn btn-primary btn-sm" (click)="navigateToSchedule()">
             Schedule
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Confirmation Modal -->
+  <div *ngIf="isConfirmDialogOpen" class="modal fade show" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title">Confirm Archive</h5>
+          <button type="button" class="btn-close" (click)="closeConfirmDialog()"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to archive this device?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="closeConfirmDialog()">
+            Cancel
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="archiveDevice()">
+            Archive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Edit Device Modal -->
+  <div *ngIf="isEditModalOpen" class="modal fade show" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title">Edit Device</h5>
+          <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form #editForm="ngForm">
+            <div class="mb-3">
+              <label for="deviceId" class="form-label">Device ID</label>
+              <input
+                type="text"
+                class="form-control"
+                id="deviceId"
+                name="deviceId"
+                [(ngModel)]="editDeviceObject.deviceId"
+                required
+              >
+            </div>
+            <div class="mb-3">
+              <label for="name" class="form-label">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                [(ngModel)]="editDeviceObject.name"
+                required
+              >
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                [(ngModel)]="editDeviceObject.description"
+                required
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="orientation" class="form-label">Orientation</label>
+              <select
+                class="form-control"
+                id="orientation"
+                name="orientation"
+                [(ngModel)]="editDeviceObject.orientation"
+                required
+              >
+                <option value="landscape">Landscape</option>
+                <option value="portrait">Portrait</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="closeEditModal()">
+            Cancel
+          </button>
+          <button 
+            class="btn btn-primary btn-sm" 
+            (click)="updateDevice()"
+            [disabled]="!editForm.form.valid"
+          >
+            Save Changes
           </button>
         </div>
       </div>

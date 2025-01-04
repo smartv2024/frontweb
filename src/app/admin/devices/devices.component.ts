@@ -52,6 +52,13 @@ export class DevicesComponent implements OnInit {
     );
   }
 
+  unpairageDevice(deviceId: string) {
+    this.adminService.isPaired(deviceId).subscribe(
+     re=>{
+      this.loadDevices()
+     }
+    );
+  }
   // Fetch all advertisements
   loadAds() {
     this.adminService.getAds().subscribe(

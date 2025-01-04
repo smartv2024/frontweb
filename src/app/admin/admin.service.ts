@@ -13,15 +13,15 @@ export class AdminService {
 
   private getHeaders() {
     let headers = new HttpHeaders();
-
-    // Only access sessionStorage or localStorage in the browser
+  
     if (isPlatformBrowser(this.platformId)) {
-      const token = sessionStorage.getItem('authToken'); // Can also use localStorage if needed
+      const token = sessionStorage.getItem('authToken');
+      console.log('Token:', token);
       if (token) {
         headers = headers.set('Authorization', `Bearer ${token}`);
       }
     }
-
+  
     return { headers };
   }
 
@@ -75,6 +75,10 @@ export class AdminService {
 
   unarchiveDevices(id: string): Observable<any> {
     return this.http.delete(`${environment.baseUrl}/api/devices/undeleteDevice/${id}`, this.getHeaders());
+  }
+
+  isPaired(id: string): Observable<any> {
+    return this.http.patch(`${environment.baseUrl}/api/devices/${id}/unpair`, {}, this.getHeaders());
   }
 
   //***************************************************** */

@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-admin',
   standalone: false,
-  
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
@@ -16,10 +15,12 @@ export class AdminComponent {
   }
 
   private checkAuthentication(): void {
-    const authToken = sessionStorage.getItem('authToken');
-    if (!authToken) {
-      // Redirect to login page
-      this.router.navigate(['/login']);
+    if (typeof window !== 'undefined') {
+      const authToken = sessionStorage.getItem('authToken');
+      if (!authToken) {
+        // Redirect to login page
+        this.router.navigate(['/login']);
+      }
     }
   }
 }
