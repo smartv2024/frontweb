@@ -68,10 +68,17 @@
             class="form-control"
             [(ngModel)]="advertisementObject.videoUrl"
             name="videoUrl"
+            (change)="validateVideoResolution($event)"
             required
           />
+          <small class="form-text text-muted">
+            Note: The video resolution should not exceed 1920x1080.
+          </small>
+          <div *ngIf="videoResolutionError" class="text-danger mt-1">
+            {{ videoResolutionError }}
+          </div>
         </div>
-  
+        
         <!-- Orientation -->
         <div class="form-group">
           <label for="orientation">

@@ -53,6 +53,11 @@
     color: white;
   }
   
+  /* Add margin to the top of the table to ensure space for dropdown */
+  .table-responsive {
+    margin-top: 20px;
+  }
+  
   /* Pagination */
   .pagination-container button {
     padding: 8px 16px;
@@ -120,6 +125,21 @@
     padding: 0.5rem 1rem;
   }
   
+  /* Dropdown Menu */
+  .dropdown-menu {
+    max-height: 200px; /* Set a maximum height for the dropdown */
+    overflow-y: auto; /* Enable vertical scrolling if content overflows */
+    z-index: 1050; /* Ensure dropdown appears above other elements */
+    top: auto;
+    bottom: 100%; /* Position the dropdown above the button */
+    transform: translateY(-5px); /* Add a small offset for better visibility */
+  }
+
+  /* Ensure dropdown is positioned correctly within the container */
+  .dropdown {
+    position: relative;
+  }
+  
   /* Responsive Adjustments */
   @media (max-width: 768px) {
     .card-img-top {
@@ -134,4 +154,38 @@
       font-size: 0.8rem;
     }
   }
-  
+
+  /* Make the dropdown fully visible outside the table */
+.table-responsive {
+  position: relative; /* Ensure a positioning context for absolute children */
+  overflow: visible; /* Allow dropdowns to display outside the table */
+}
+
+.dropdown-menu {
+  position: absolute; /* Remove it from document flow */
+  z-index: 1055; /* Ensure it's above other elements */
+  top: 100%; /* Position the dropdown below the button */
+  left: auto; /* Align it relative to the button */
+  right: 0; /* Ensure it aligns correctly */
+  transform: translateY(5px); /* Add some spacing for better visibility */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Add shadow for clarity */
+  width: max-content; /* Ensure dropdown adjusts to its content */
+  min-width: 12rem; /* Set a sensible minimum width */
+}
+
+/* Ensure table doesn't clip the dropdown */
+.table-custom {
+  overflow: visible; /* Prevent dropdown from being hidden */
+}
+
+/* Handle dropdown visibility in the viewport */
+.dropdown-menu {
+  max-height: 300px; /* Limit height */
+  overflow-y: auto; /* Enable scrolling if content overflows */
+}
+
+/* Ensure table's parent container allows visibility */
+.ad-list-container {
+  overflow: visible; /* Make dropdowns fully visible */
+  position: relative; /* Required for dropdown positioning */
+}

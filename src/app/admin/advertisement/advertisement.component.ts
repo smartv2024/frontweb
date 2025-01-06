@@ -138,7 +138,24 @@ export class AdvertisementComponent {
     this.isConfirmDialogOpen = false;
     this.archivingAdId = '';
   }
+
   navigateToAddAdvertisement() {
     this.router.navigate(['/admin/newAds']);
+  }
+
+  // Method to check video resolution
+  checkVideoResolution(url: string): boolean {
+    // Placeholder logic for resolution check
+    // In a real scenario, you would fetch video metadata to verify resolution
+    const maxResolution = { width: 1920, height: 1080 };
+    // Assume a function getVideoResolution() that returns the resolution
+    const videoResolution = this.getVideoResolution(url);
+    return videoResolution.width <= maxResolution.width && videoResolution.height <= maxResolution.height;
+  }
+
+  // Mock function to simulate getting video resolution
+  getVideoResolution(url: string): { width: number, height: number } {
+    // This is a mock implementation
+    return { width: 1280, height: 720 }; // Example resolution
   }
 }
