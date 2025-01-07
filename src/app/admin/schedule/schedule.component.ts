@@ -37,7 +37,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           console.log(response)
 
           this.schedules = response.data
-            .filter((schedule: any) => !schedule.deviceId.isDeleted)
+            .filter((schedule: any) => schedule.deviceId && !schedule.deviceId.isDeleted)
             .map((schedule: any) => ({
               ...schedule,
               endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
