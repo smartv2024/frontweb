@@ -78,6 +78,13 @@ export class AdminService {
     );
   }
 
+  deleteAdById(id: any): Observable<any> {
+    return this.http.delete(
+      `${environment.baseUrl}/api/advertisements/deleteById/${id}`,
+      this.getHeaders()
+    );
+  }
+
   // *********************************************** Devices *************************************************
 
   addDevices(body: any): Observable<any> {
@@ -132,6 +139,13 @@ export class AdminService {
     );
   }
 
+
+  deleteDeviceById(id: string): Observable<any> {
+    return this.http.delete(
+      `${environment.baseUrl}/api/devices/deleteById/${id}`,
+      this.getHeaders()
+    );
+  }
   // ************************************************ Schedules **********************************************
 
   createSchedule(body: any): Observable<any> {

@@ -34,10 +34,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.adminService.getAllSchedule().subscribe({
         next: (response: any) => {
-          this.schedules = response.data.map((schedule: any) => ({
-            ...schedule,
-            endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
-          }));
+          console.log(response)
+
+          this.schedules = response.data
+            .filter((schedule: any) => !schedule.deviceId.isDeleted)
+            .map((schedule: any) => ({
+              ...schedule,
+              endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
+            }));
           this.loading = false;
         },
         error: (error) => {

@@ -194,4 +194,15 @@ export class DevicesComponent implements OnInit {
   navigateToAddDevice() {
     this.router.navigate(['/admin/addDevices']); // Navigate to the 'addDevices' route
   }
+
+  deleteDevice(id: string) {
+    this.adminService.deleteDeviceById(id).subscribe(
+      () => {
+        this.loadDevices();
+      },
+      (error) => {
+        this.errorMessage = error.error?.message || 'Failed to delete device.';
+      }
+    );
+  }
 }

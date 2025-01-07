@@ -28,29 +28,41 @@ export class AddAdvertisementComponent {
     const inputElement = event.target as HTMLInputElement;
     const videoUrl = inputElement.value;
     this.videoResolutionError = ''; // Reset previous error message
-
+  
     if (videoUrl) {
-      const video = document.createElement('video');
-      video.src = videoUrl;
-
-      video.onloadedmetadata = () => {
-        const videoWidth = video.videoWidth;
-        const videoHeight = video.videoHeight;
-
-        if (videoWidth > 1920 || videoHeight > 1080) {
+      this.getMediaDimensions(videoUrl)
+        .then((dimensions) => {
+          console.log('Video Dimensions:', dimensions);
+          if (dimensions.width > 1920 || dimensions.height > 1080) {
+            this.videoResolutionError =
+              'The video resolution exceeds the maximum allowed size of 1920x1080.';
+            this.advertisementObject.videoUrl = ''; // Clear the invalid URL
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching video dimensions:', error);
           this.videoResolutionError =
-            'The video resolution exceeds the maximum allowed size of 1920x1080.';
+            'Unable to validate video resolution. Please provide a valid video URL.';
           this.advertisementObject.videoUrl = ''; // Clear the invalid URL
-        }
-      };
-
-      video.onerror = () => {
-        this.videoResolutionError =
-          'Unable to load the video. Please provide a valid video URL.';
-        this.advertisementObject.videoUrl = ''; // Clear the invalid URL
-      };
+        });
     }
   }
+  
+  getMediaDimensions(videoUrl: string): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.src = videoUrl;
+  
+      video.onloadedmetadata = () => {
+        resolve({ width: video.videoWidth, height: video.videoHeight });
+      };
+  
+      video.onerror = () => {
+        reject('Failed to load video metadata.');
+      };
+    });
+  }
+  
   addAdvertisement() {
     this.isSubmitting = true;
     this.successMessage = ''; // Clear previous success message
@@ -96,3 +108,7 @@ export class AddAdvertisementComponent {
   }
 
 }
+function getMediaDimensions(arg0: string) {
+  throw new Error('Function not implemented.');
+}
+

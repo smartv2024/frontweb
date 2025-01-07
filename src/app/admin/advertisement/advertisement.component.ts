@@ -158,4 +158,16 @@ export class AdvertisementComponent {
     // This is a mock implementation
     return { width: 1280, height: 720 }; // Example resolution
   }
+
+  deleteAdvertisement(id: string) {
+    this.adminService.deleteAdById(id).subscribe(
+      () => {
+        this.successMessage = 'Advertisement deleted successfully!';
+        this.loadAdvertisements();
+      },
+      (error) => {
+        this.errorMessage = error.error?.message || 'Failed to delete advertisement.';
+      }
+    );
+  }
 }
