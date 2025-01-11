@@ -13,6 +13,8 @@ export class NavbarComponent {
   constructor(private route: Router) { }
   logout(){
     sessionStorage.clear();
+    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('authToken');
     localStorage.clear();
     this.route.navigate(['/login']);
   }
