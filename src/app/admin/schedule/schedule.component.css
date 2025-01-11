@@ -1,89 +1,121 @@
 /* Schedule Table Styling */
 .table {
-    width: 100%; /* Ensures the table spans the full width */
-    margin-bottom: 1rem;
-    border-collapse: collapse; /* Ensures no space between cells */
-  }
-  
-  /* Table Head Styling */
-  .table thead th {
-    vertical-align: middle; /* Centers text vertically */
-    text-align: center; /* Centers text horizontally */
-    padding: 12px; /* Adds space around text */
-    background-color: white; /* Dark background for table head */
-    color: rgb(21, 1, 1); /* White text for contrast */
-    font-size: 16px; /* Readable font size */
-  }
-  
-  /* Table Body Styling */
-  .table tbody td {
-    vertical-align: middle; /* Centers text vertically */
-    padding: 10px; /* Space around text in cells */
-    text-align: center; /* Centers text horizontally */
-    font-size: 14px; /* Smaller but readable font size */
-    word-break: break-word; /* Breaks long text if necessary */
-  }
-  
-  /* Adjust Row Height */
-  .table tbody tr {
-    height: 60px; /* Uniform row height */
-  }
-  
-  /* Responsive Table Scroll */
-  .table-responsive {
-    max-height: 500px; /* Limits table height for better scrolling */
-    overflow-y: auto; /* Adds vertical scroll if needed */
-    border: 1px solid #dee2e6; /* Table border for clarity */
-  }
-  
-  /* Highlight Hovered Row */
-  .table tbody tr:hover {
-    background-color: #f8f9fa; /* Light grey background on hover */
-  }
-  
-  /* Button Styling for Consistency */
-  .btn {
-    font-size: 14px; /* Consistent button font size */
-    padding: 5px 10px; /* Adds consistent padding */
-  }
-  
-  .btn-primary {
-    background-color: #007bff; /* Primary button color */
-    border-color: #007bff; /* Matches border with background */
-  }
-  
-  .btn-danger {
-    background-color: #dc3545; /* Danger button color */
-    border-color: #dc3545; /* Matches border with background */
-  }
-  
-  .btn:hover {
-    opacity: 0.9; /* Slightly dim the button on hover */
-  }
-  /* Green dot for Playlist */
+  width: 100%;
+  /* Ensures the table spans the full width */
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  /* Ensures no space between cells */
+}
+
+/* Table Head Styling */
+.table thead th {
+  vertical-align: middle;
+  /* Centers text vertically */
+  text-align: center;
+  /* Centers text horizontally */
+  padding: 12px;
+  /* Adds space around text */
+  background-color: white;
+  /* Dark background for table head */
+  color: rgb(21, 1, 1);
+  /* White text for contrast */
+  font-size: 16px;
+  /* Readable font size */
+}
+
+/* Table Body Styling */
+.table tbody td {
+  vertical-align: middle;
+  /* Centers text vertically */
+  padding: 10px;
+  /* Space around text in cells */
+  text-align: center;
+  /* Centers text horizontally */
+  font-size: 14px;
+  /* Smaller but readable font size */
+  word-break: break-word;
+  /* Breaks long text if necessary */
+}
+
+/* Adjust Row Height */
+.table tbody tr {
+  height: 60px;
+  /* Uniform row height */
+}
+
+/* Responsive Table Scroll */
+.table-responsive {
+  max-height: 500px;
+  /* Limits table height for better scrolling */
+  overflow-y: auto;
+  /* Adds vertical scroll if needed */
+  border: 1px solid #dee2e6;
+  /* Table border for clarity */
+}
+
+/* Highlight Hovered Row */
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+  /* Light grey background on hover */
+}
+
+/* Button Styling for Consistency */
+.btn {
+  font-size: 14px;
+  /* Consistent button font size */
+  padding: 5px 10px;
+  /* Adds consistent padding */
+}
+
+.btn-primary {
+  background-color: #007bff;
+  /* Primary button color */
+  border-color: #007bff;
+  /* Matches border with background */
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  /* Danger button color */
+  border-color: #dc3545;
+  /* Matches border with background */
+}
+
+.btn:hover {
+  opacity: 0.9;
+  /* Slightly dim the button on hover */
+}
+
+/* Green dot for Playlist */
 /* Green dot for valid Playlist */
 .dot-green {
-    color: #00FF00;
+  color: #00FF00;
+}
+
+.dot-red {
+  color: red;
+}
+
+/* Blinking effect for waiting Playlist */
+.dot-blinking {
+  animation: blinking 1s infinite;
+  /* Runs animation infinitely every 1 second */
+}
+
+/* Define the blinking animation */
+@keyframes blinking {
+  0% {
+    color: orange;
+    /* Start with orange */
   }
-  .dot-red {
-    color: red;
+
+  50% {
+    color: rgb(165, 3, 3);
+    /* Transition to black */
   }
-  
-  /* Blinking effect for waiting Playlist */
-  .dot-blinking {
-    animation: blinking 1s infinite; /* Runs animation infinitely every 1 second */
+
+  100% {
+    color: orange;
+    /* Back to orange */
   }
-  
-  /* Define the blinking animation */
-  @keyframes blinking {
-    0% {
-      color: orange; /* Start with orange */
-    }
-    50% {
-      color: rgb(165, 3, 3); /* Transition to black */
-    }
-    100% {
-      color: orange; /* Back to orange */
-    }
-  }
-  
+}

@@ -19,6 +19,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private mismatchTimeouts: { [deviceId: string]: any } = {};
   private sameIndexTimeouts: { [deviceId: string]: any } = {};
   private lastIndices: { [deviceId: string]: number } = {};
+  deviceLogs: { [deviceId: string]: string } = {};
 
   // Track a 30s inactivity timer per device
   private inactivityTimers: { [deviceId: string]: any } = {};
@@ -41,11 +42,13 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.subscribeToDeviceUpdates();
       this.StateApp();
       // If needed: this.TVStateWeb();
-      this.oneRefresh()
+      this.oneRefresh();
+      this.TVStateWeb();
+      this.SystemStateWeb()
     });
   }
 
-  oneRefresh():void{
+  oneRefresh(): void {
     this.socketService.listen<any>('returnStateWeb').subscribe((data: any) => {
       console.log('Received ReturnStateWeb event:', data);
       // Clear old inactivity timer
@@ -61,6 +64,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
             // If data.state === 'foreground', it turns green;
             // If data.state === 'background', stays red.
             appState: data.lastAppState,
+            TVstate: data.lastTvState,
+            SystemState:data.lastSystemState
           };
         }
         return schedule;
@@ -76,6 +81,37 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     // Clear inactivity timers
     Object.values(this.inactivityTimers).forEach((timer) => clearTimeout(timer));
   }
+
+  SystemStateWeb():void{
+    this.socketService.listen<any>('SystemStateWeb').subscribe((data: any) => {
+      console.log(`Received SystemStateWeb for device ${data.deviceId}:`, data);
+
+      // Clear old inactivity timer
+      if (this.inactivityTimers[data.deviceId]) {
+        clearTimeout(this.inactivityTimers[data.deviceId]);
+      }
+
+      // Update the appState
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          return {
+            ...schedule,
+            // If data.state === 'foreground', it turns green;
+            // If data.state === 'background', stays red.
+            SystemState: data.state,
+          };
+        }
+        return schedule;
+      });
+
+     
+      this.updateStates(data.deviceId);
+
+      this.cdr.detectChanges();
+    });
+  }
+
+
 
   private loadSchedules(): void {
     this.loading = true;
@@ -142,7 +178,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectedDeviceId: string | null = null;
+  selectedDeviceId!: string ;
 
   openModalGods(deviceId: string): void {
     this.selectedDeviceId = deviceId;
@@ -238,6 +274,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         }
         return schedule;
       });
+      this.updateStates(data.deviceId);
 
       this.cdr.detectChanges();
     });
@@ -278,7 +315,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           return schedule;
         });
         this.cdr.detectChanges();
-      }, 300000);
+      }, 50000);
+      this.updateStates(data.deviceId);
 
       this.cdr.detectChanges();
     });
@@ -287,7 +325,88 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   TVStateWeb(): void {
     this.socketService.listen<any>('TVStateWeb').subscribe((data: any) => {
       console.log(`Received TVStateWeb for device ${data.deviceId}:`, data);
-      // Do something if needed
+
+      // Clear old inactivity timer
+      if (this.inactivityTimers[data.deviceId]) {
+        clearTimeout(this.inactivityTimers[data.deviceId]);
+      }
+
+      // Update the appState
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          return {
+            ...schedule,
+            // If data.state === 'foreground', it turns green;
+            // If data.state === 'background', stays red.
+            TVstate: data.state,
+          };
+        }
+        return schedule;
+      });
+
+      // 30s timer: if no new message, set to 'inactive' (also red)
+      this.inactivityTimers[data.deviceId] = setTimeout(() => {
+        this.schedules = this.schedules.map((schedule) => {
+          if (schedule.deviceId.deviceId === data.deviceId) {
+            return {
+              ...schedule,
+              TVstate: 'off',
+            };
+          }
+          return schedule;
+        });
+        this.cdr.detectChanges();
+      }, 20000);
+      this.updateStates(data.deviceId);
+
+      this.cdr.detectChanges();
     });
+  }
+
+  private updateStates(deviceId: string): void {
+    const schedule = this.schedules.find(s => s.deviceId.deviceId === deviceId);
+    if (!schedule) return;
+  
+    // System State Logic
+    if (schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive') {
+      schedule.SystemState = 'inactive';
+      schedule.TVstate = 'off';
+      schedule.appState = 'inactive';
+      schedule.instantData.error = true;
+      this.logState(deviceId, 'All system is shut down');
+      return;
+    }
+  
+    // Screen State Logic
+    if (schedule.TVstate === 'off' || schedule.TVstate === 'inactive') {
+      schedule.TVstate = 'off';
+      schedule.appState = 'inactive';
+      schedule.instantData.error = true;
+      this.logState(deviceId, 'TV is in sleep mode or screen is turned off, please turn on the screen');
+      return;
+    }
+  
+    // App State Logic
+    if (schedule.appState === 'background' || schedule.appState === 'inactive') {
+      schedule.appState = 'inactive';
+      schedule.instantData.error = true;
+      this.logState(deviceId, 'App is not running or is running in background, check your App');
+      return;
+    }
+  
+    // Current Ad State Logic
+    if (!schedule.instantData.titleVideo || schedule.instantData.error) {
+      this.logState(deviceId, 'Issue with playlist, probably blocked, try relaunching the playlist by editing the schedule');
+      return;
+    }
+  
+    // All Good
+    this.logState(deviceId, 'All Good');
+  }
+  
+  private logState(deviceId: string, message: string): void {
+    console.log(`Device ${deviceId}: ${message}`);
+    this.deviceLogs[deviceId] = message;
+    this.cdr.detectChanges(); // Ensure Angular detects the change
   }
 }

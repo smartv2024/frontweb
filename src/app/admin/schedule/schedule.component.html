@@ -40,14 +40,18 @@
                   <!-- System Status -->
                   <td>
                     <span class="mx-2" title="System">
-                      <i class="fas fa-circle"></i>
-                    </span>
+                      <i class="fas fa-circle" [ngClass]="{
+                        'dot-green': schedule.SystemState === 'boot_complete',
+                        'dot-red': schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive'
+                      }"></i>                    </span>
                   </td>
                   <!-- Screen Status -->
                   <td>
                     <span class="mx-2" title="Screen">
-                      <i class="fas fa-circle"></i>
-                    </span>
+                      <i class="fas fa-circle" [ngClass]="{
+                        'dot-green': schedule.TVstate === 'on',
+                        'dot-red': schedule.TVstate === 'off' || schedule.TVstate === 'inactive'
+                      }"></i> </span>   
                   </td>
                   <!-- App Status -->
                   <td>
@@ -56,26 +60,20 @@
                       Switches to green if appState = 'foreground'.
                     -->
                     <span class="mx-2" title="App">
-                      <i
-                        class="fas fa-circle"
-                        [ngClass]="{
+                      <i class="fas fa-circle" [ngClass]="{
                           'dot-green': schedule.appState === 'foreground',
                           'dot-red': schedule.appState === 'background' || schedule.appState === 'inactive'
-                        }"
-                      ></i>
+                        }"></i>
                       App
                     </span>
                   </td>
                   <!-- Playlist Number -->
                   <td>
                     <span *ngIf="!schedule.instantData?.error" class="mx-2" title="Playlist">
-                      <i
-                        class="fas fa-circle"
-                        [ngClass]="{
+                      <i class="fas fa-circle" [ngClass]="{
                           'dot-green': schedule.instantData?.titleVideo,
                           'dot-blinking': !schedule.instantData?.titleVideo
-                        }"
-                      ></i>
+                        }"></i>
                       N° {{ schedule.instantData?.index || '' }}
                     </span>
                     <span *ngIf="schedule.instantData?.error" class="mx-2" title="Error">
@@ -85,13 +83,8 @@
                   </td>
                   <!-- Log Details -->
                   <td>
-                    <span
-                      class="mx-2"
-                      title="Views"
-                      data-bs-toggle="modal"
-                      data-bs-target="#exampleModal"
-                      (click)="openModalGods(schedule.deviceId.deviceId)"
-                    >
+                    <span class="mx-2" title="Views" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                      (click)="openModalGods(schedule.deviceId.deviceId)">
                       <i class="fas fa-eye"></i>
                     </span>
                   </td>
@@ -130,64 +123,37 @@
   </div>
 
   <!-- Modal -->
-  <div
-    class="modal fade"
-    id="exampleModal"
-    tabindex="-1"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">God's Eye View</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">{{ VariableTitleVd }}</h5>
-              <p class="card-text">Additional content can go here.</p>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title">Card 1</h5>
-                  <p class="card-text">Content for card 1.</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title">Card 2</h5>
-                  <p class="card-text">Content for card 2.</p>
-                </div>
+  <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">God's Eye View</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <!-- Modal Body -->
+      <div class="modal-body">
+       
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Device Log</h5>
+                <p class="card-text">{{ deviceLogs[selectedDeviceId] || 'No log available' }}</p>
               </div>
             </div>
           </div>
+         
         </div>
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Close
-          </button>
-        </div>
+      </div>
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
       </div>
     </div>
   </div>
+
 </div>
