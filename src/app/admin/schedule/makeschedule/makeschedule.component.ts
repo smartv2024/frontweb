@@ -95,7 +95,7 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
     const adPromises = this.selectedAds.map((adId) => this.adminService.getAdsById(adId).toPromise());
     Promise.all(adPromises)
       .then((responses) => {
-        this.ads = responses.map((response) => response.data);
+        this.ads = responses.map((response) => response.data).filter(ad => !ad.archived);
       })
       .catch(() => {
         this.error = 'Error loading advertisement details';

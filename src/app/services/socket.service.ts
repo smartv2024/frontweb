@@ -21,9 +21,14 @@ export class SocketService {
 
   private setupConnectionListeners(): void {
     this.socket.on('connect', () => console.log('Connected to socket server'));
-    this.socket.on('disconnect', () => console.log('Disconnected from socket server'));
-    this.socket.on('connect_error', (error: any) => console.error('Socket connection error:', error));
+    this.socket.on('disconnect', (reason: string) => console.error('Disconnected:', reason));
+    this.socket.on('connect_error', (error: any) => console.error('Connect error:', error));
+    this.socket.on('reconnect', (attemptNumber: number) => console.log('Reconnected:', attemptNumber));
+    this.socket.on('reconnect_attempt', (attemptNumber: number) => console.log('Reconnect attempt:', attemptNumber));
+    this.socket.on('reconnect_error', (error: any) => console.error('Reconnect error:', error));
+    this.socket.on('reconnect_failed', () => console.error('Reconnect failed'));
   }
+  
 
   // Get current connection status
   isConnected(): boolean {
@@ -79,5 +84,20 @@ export class SocketService {
   connect(): void {
     this.socket.connect();
     console.log('Socket connected');
+  }
+
+  // Handle connection readiness
+  onConnect(): Observable<void> {
+    return new Observable(observer => {
+      if (this.isConnected()) {
+        observer.next();
+        observer.complete();
+      } else {
+        this.socket.on('connect', () => {
+          observer.next();
+          observer.complete();
+        });
+      }
+    });
   }
 }

@@ -177,4 +177,11 @@ export class AdminService {
       this.getHeaders()
     );
   }
+
+  deleteScheduleById(id: any): Observable<any> {
+    return this.http.delete(
+      `${environment.baseUrl}/api/schedules/deleteById/${id}`,
+      this.getHeaders()
+    );
+  }
 }

@@ -20,6 +20,8 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
   advertisements: any[] = [];
   updateForm: FormGroup;
   isEditing: boolean = false;
+  deviceId:any=""
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -69,7 +71,15 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.adminService.getScheduleById(scheduleId).subscribe({
         next: (response: any) => {
+          console.log(response)
+
           this.schedule = response.data;
+          // Ensure advertisements is defined and is an array
+          if (Array.isArray(this.schedule.advertisementIds)) {
+            this.schedule.advertisementIds = this.schedule.advertisementIds.filter((ad: { isDeleted: boolean; }) => !ad.isDeleted);
+          } else {
+            this.schedule.advertisementIds = [];
+          }
           this.populateForm();
           this.loading = false;
         },
@@ -80,7 +90,6 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
       })
     );
   }
-deviceId:any=""
   private loadDevices(): void {
     this.subscriptions.push(
       this.adminService.getDevices().subscribe({
@@ -99,7 +108,8 @@ deviceId:any=""
     this.subscriptions.push(
       this.adminService.getAds().subscribe({
         next: (response: any) => {
-          this.advertisements = response.data;
+          console.log(response)
+          this.advertisements = response.data.filter((ad: { isDeleted: any; }) => ad.isDeleted==true);
         },
         error: (error) => {
           console.error('Error loading advertisements:', error);
