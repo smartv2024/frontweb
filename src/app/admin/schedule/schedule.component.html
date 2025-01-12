@@ -8,7 +8,7 @@
   </div>
 
   <!-- Table Section -->
-  <div class="table-responsive" style="overflow-x: auto !important;">
+  <div class="table-responsive" >
     <table class="table table-striped table-bordered table-hover">
       <thead class="thead-dark">
         <tr>
@@ -41,45 +41,47 @@
                   <td>
                     <span class="mx-2" title="System">
                       <i class="fas fa-circle" [ngClass]="{
-                        'dot-green': schedule.SystemState === 'boot_complete',
-                        'dot-red': schedule.SystemState !== 'boot_complete'
+                          'dot-green': schedule.SystemState !== 'shutting_down' && schedule.SystemState !== 'inactive',
+                          'dot-red': schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive'
                       }"></i>
-                    </span>
+                      System
+                  </span>
                   </td>
                   <!-- Screen Status -->
                   <td>
                     <span class="mx-2" title="Screen">
                       <i class="fas fa-circle" [ngClass]="{
-                        'dot-green': schedule.TVstate === 'on',
-                        'dot-red': schedule.TVstate !== 'on'
+                          'dot-green': schedule.TVstate === 'on' && schedule.SystemState !== 'shutting_down',
+                          'dot-red': schedule.TVstate === 'off' || schedule.SystemState === 'shutting_down'
                       }"></i>
-                    </span>
+                      Screen
+                  </span>
                   </td>
                   <!-- App Status -->
                   <td>
                     <span class="mx-2" title="App">
                       <i class="fas fa-circle" [ngClass]="{
-                        'dot-green': schedule.appState === 'foreground',
-                        'dot-red': schedule.appState !== 'foreground',
-
+                          'dot-green': schedule.appState === 'foreground' && schedule.TVstate === 'on' && schedule.SystemState !== 'shutting_down',
+                          'dot-red': schedule.appState !== 'foreground' || schedule.TVstate === 'off' || schedule.SystemState === 'shutting_down'
                       }"></i>
-                      
-                    </span>
+                      App
+                  </span>
 
                   </td>
                   <!-- Playlist Status -->
                   <td>
                     <span *ngIf="schedule.instantData" class="mx-2" title="Playlist">
                       <i class="fas fa-circle" [ngClass]="{
-                          'dot-green': schedule.instantData?.titleVideo,
-                          'dot-blinking': !schedule.instantData?.titleVideo
-                        }"></i>
+                          'dot-green': schedule.instantData?.titleVideo && schedule.appState === 'foreground' && schedule.TVstate === 'on' && schedule.SystemState !== 'shutting_down',
+                          'dot-blinking': !schedule.instantData?.titleVideo && schedule.appState === 'foreground' && schedule.TVstate === 'on' && schedule.SystemState !== 'shutting_down',
+                          'dot-red': schedule.appState !== 'foreground' || schedule.TVstate === 'off' || schedule.SystemState === 'shutting_down'
+                      }"></i>
                       N° {{ schedule.instantData?.index || '' }}
-                    </span>
-                    <span *ngIf="!schedule.instantData" class="mx-2" title="Playlist">
+                  </span>
+                  <span *ngIf="!schedule.instantData" class="mx-2" title="Playlist">
                       <i class="fas fa-circle dot-red"></i>
                       N/A
-                    </span>
+                  </span>
                   </td>
                   <!-- Log Details -->
                   <td>

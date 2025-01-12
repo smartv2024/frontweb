@@ -105,17 +105,16 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
   }
 
   private loadAdvertisements(): void {
-    this.subscriptions.push(
       this.adminService.getAds().subscribe({
         next: (response: any) => {
-          console.log(response)
-          this.advertisements = response.data.filter((ad: { isDeleted: any; }) => ad.isDeleted==true);
+          console.log("ADS",response)
+          this.advertisements = response.data.filter((ad: { isDeleted: any; }) => ad.isDeleted==false);
         },
         error: (error) => {
           console.error('Error loading advertisements:', error);
         }
       })
-    );
+    
   }
 
   private populateForm(): void {

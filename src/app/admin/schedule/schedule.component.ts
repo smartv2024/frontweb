@@ -33,6 +33,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   deviceStates: { [deviceId: string]: string } = {};
   VariableTitleVd: string = 'Your Text Here';
 
+  // Add state control variables
+  private blockAppState: { [key: string]: boolean } = {};
+  private blockAds: { [key: string]: boolean } = {};
+
   constructor(
     private adminService: AdminService,
     private router: Router,
@@ -143,12 +147,46 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.socketService.listen<any>('SystemStateWeb').subscribe((data: any) => {
       console.log(`Received SystemStateWeb for device ${data.deviceId}:`, data);
 
-      // Clear old inactivity timer
+      if (data.state === 'shutting_down') {
+        // Block App and Ads updates
+        this.blockAppState[data.deviceId] = true;
+        this.blockAds[data.deviceId] = true;
+
+        // Update states to red
+        this.schedules = this.schedules.map((schedule) => {
+          if (schedule.deviceId.deviceId === data.deviceId) {
+            return {
+              ...schedule,
+              SystemState: 'inactive',
+              appState: 'inactive',
+              TVstate: 'off',
+              instantData: {
+                titleVideo: 'No video available',
+                index: null,
+                error: true
+              }
+            };
+          }
+          return schedule;
+        });
+        this.cdr.detectChanges();
+      } else {
+        // System is green, check TV state
+        const schedule = this.schedules.find(s => s.deviceId.deviceId === data.deviceId);
+        if (schedule && schedule.TVstate === 'off') {
+          this.blockAppState[data.deviceId] = true;
+          this.blockAds[data.deviceId] = true;
+        } else {
+          // System is green and TV is on, allow app updates
+          this.blockAppState[data.deviceId] = false;
+        }
+      }
+
+      // Existing code...
       if (this.inactivityTimers[data.deviceId]) {
         clearTimeout(this.inactivityTimers[data.deviceId]);
       }
 
-      // Update the appState
       this.schedules = this.schedules.map((schedule) => {
         if (schedule.deviceId.deviceId === data.deviceId) {
           return {
@@ -160,6 +198,130 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       });
 
       this.updateStates(data.deviceId);
+      this.updatePagination();
+      this.cdr.detectChanges();
+    });
+  }
+
+  TVStateWeb(): void {
+    this.socketService.listen<any>('TVStateWeb').subscribe((data: any) => {
+      if (data.state === 'off') {
+        // Block App and Ads updates when TV is off
+        this.blockAppState[data.deviceId] = true;
+        this.blockAds[data.deviceId] = true;
+
+        // Update states
+        this.schedules = this.schedules.map((schedule) => {
+          if (schedule.deviceId.deviceId === data.deviceId) {
+            return {
+              ...schedule,
+              TVstate: 'off',
+              appState: 'inactive',
+              instantData: {
+                titleVideo: 'No video available',
+                index: null,
+                error: true
+              }
+            };
+          }
+          return schedule;
+        });
+      } else {
+        // TV is on, check system state
+        const schedule = this.schedules.find(s => s.deviceId.deviceId === data.deviceId);
+        if (schedule && schedule.SystemState !== 'shutting_down') {
+          this.blockAppState[data.deviceId] = false;
+        }
+      }
+
+      // Existing code...
+      const deviceState = this.getLocalStorageState(data.deviceId);
+      this.startTVStateInactivityTimer(data.deviceId);
+      this.updateLocalStorageState(
+        data.deviceId,
+        deviceState.LastAppState,
+        data.state,
+        deviceState.isAppStateTimePassed,
+        false,
+        deviceState.counterAppState
+      );
+      this.updateTVState(data.deviceId);
+      this.cdr.detectChanges();
+    });
+  }
+
+  StateApp(): void {
+    this.socketService.listen<any>('AppStateWeb').subscribe((data: any) => {
+      // Skip if blocked by system or TV state
+      if (this.blockAppState[data.deviceId]) {
+        return;
+      }
+
+      if (data.state !== 'foreground') {
+        this.blockAds[data.deviceId] = true;
+        // Update states
+        this.schedules = this.schedules.map((schedule) => {
+          if (schedule.deviceId.deviceId === data.deviceId) {
+            return {
+              ...schedule,
+              appState: data.state,
+              instantData: {
+                titleVideo: 'No video available',
+                index: null,
+                error: true
+              }
+            };
+          }
+          return schedule;
+        });
+      } else {
+        // App is in foreground, enable ad updates
+        this.blockAds[data.deviceId] = false;
+      }
+
+      // Existing code...
+      const deviceState = this.getLocalStorageState(data.deviceId);
+      this.startAppStateInactivityTimer(data.deviceId);
+      this.updateLocalStorageState(
+        data.deviceId,
+        data.state,
+        deviceState.LastTVstate,
+        false,
+        false,
+        deviceState.counterAppState
+      );
+      this.updateAppState(data.deviceId);
+      this.cdr.detectChanges();
+    });
+  }
+
+  subscribeToDeviceUpdates(): void {
+    if (!this.socketService.isConnected()) {
+      console.error('Socket is not connected');
+      return;
+    }
+
+    // Listen to currentAdWeb for index/error updates
+    this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
+      // Skip if blocked by system, TV, or app state
+      if (this.blockAds[data.deviceId]) {
+        return;
+      }
+
+      // Existing code...
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          return {
+            ...schedule,
+            instantData: {
+              titleVideo: data.title || 'No title available for this device',
+              index: data.index + 1,
+              error: false,
+            },
+          };
+        }
+        return schedule;
+      });
       this.updatePagination();
       this.cdr.detectChanges();
     });
@@ -237,149 +399,6 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     const schedule = this.schedules.find((s) => s.deviceId.deviceId === deviceId);
     this.VariableTitleVd = schedule?.instantData?.titleVideo || 'No title available for this device';
     this.cdr.detectChanges();
-  }
-
-  subscribeToDeviceUpdates(): void {
-    if (!this.socketService.isConnected()) {
-      console.error('Socket is not connected');
-      return;
-    }
-
-    // Listen to currentAdWeb for index/error updates
-    this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
-      console.log(`Received currentAdWeb for device ${data.deviceId}:`, data);
-      this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === data.deviceId) {
-          const adsLength = schedule.advertisementIds.length;
-
-          // Clear mismatch timer
-          if (this.mismatchTimeouts[data.deviceId]) {
-            clearTimeout(this.mismatchTimeouts[data.deviceId]);
-            delete this.mismatchTimeouts[data.deviceId];
-          }
-          console.log(data.index)
-          // Check for mismatched index
-          if (data.index + 1 === adsLength) {
-            return {
-              ...schedule,
-              instantData: {
-                titleVideo: data.title || 'No title available for this device',
-                index: data.index + 1,
-                error: false, // Ensure error is set to false on successful update
-              },
-            };
-          } else {
-            // 2-minute mismatch check
-            this.mismatchTimeouts[data.deviceId] = setTimeout(() => {
-              this.schedules = this.schedules.map((s) => {
-                if (s.deviceId.deviceId === data.deviceId) {
-                  return {
-                    ...s,
-                    instantData: {
-                      ...s.instantData,
-                      error: true,
-                    },
-                  };
-                }
-                return s;
-              });
-              this.updatePagination();
-              this.cdr.detectChanges();
-            }, 120000); // 2 minutes
-          }
-
-          // Check for repeated index
-          if (this.lastIndices[data.deviceId] === data.index) {
-            if (!this.sameIndexTimeouts[data.deviceId]) {
-              this.sameIndexTimeouts[data.deviceId] = setTimeout(() => {
-                this.schedules = this.schedules.map((s) => {
-                  if (s.deviceId.deviceId === data.deviceId) {
-                    return {
-                      ...s,
-                      instantData: {
-                        ...s.instantData,
-                        error: true,
-                      },
-                    };
-                  }
-                  return s;
-                });
-                this.updatePagination();
-                this.cdr.detectChanges();
-              }, 120000);
-            }
-          } else {
-            if (this.sameIndexTimeouts[data.deviceId]) {
-              clearTimeout(this.sameIndexTimeouts[data.deviceId]);
-              delete this.sameIndexTimeouts[data.deviceId];
-            }
-          }
-
-          // Update last index
-          this.lastIndices[data.deviceId] = data.index;
-
-          return {
-            ...schedule,
-            instantData: {
-              ...schedule.instantData,
-              error: false, // Reset error on successful update
-            },
-          };
-        }
-        return schedule;
-      });
-      this.updateStates(data.deviceId);
-      this.updatePagination();
-      this.cdr.detectChanges();
-    });
-  }
-
-  // Listen to AppStateWeb: changes default dot from red => green if foreground
-  StateApp(): void {
-    this.socketService.listen<any>('AppStateWeb').subscribe((data: any) => {
-     
-      const deviceState = this.getLocalStorageState(data.deviceId);
-  
-      // Reset inactivity timer
-      this.startAppStateInactivityTimer(data.deviceId);
-  
-      // Update localStorage
-      this.updateLocalStorageState(
-        data.deviceId,
-        data.state, // LastAppState
-        deviceState.LastTVstate,
-        false, // isAppStateTimePassed
-        false, // NoResponse
-        deviceState.counterAppState
-      );
-  
-      // Update the app state
-      this.updateAppState(data.deviceId);
-      this.cdr.detectChanges();
-    });
-  }
-
-  TVStateWeb(): void {
-    this.socketService.listen<any>('TVStateWeb').subscribe((data: any) => {
-      const deviceState = this.getLocalStorageState(data.deviceId);
-  
-      // Reset inactivity timer
-      this.startTVStateInactivityTimer(data.deviceId);
-  
-      // Update localStorage
-      this.updateLocalStorageState(
-        data.deviceId,
-        deviceState.LastAppState,
-        data.state, // LastTVstate ('on' or 'off')
-        deviceState.isAppStateTimePassed,
-        false, // NoResponse
-        deviceState.counterAppState
-      );
-  
-      // Update the TV state
-      this.updateTVState(data.deviceId);
-      this.cdr.detectChanges();
-    });
   }
 
   private updateStates(deviceId: string): void {
@@ -527,8 +546,6 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }, INACTIVITY_TIMEOUT_APP); // 5 minutes (300,000 milliseconds)
   }
-
-
 
   private startTVStateInactivityTimer(deviceId: string): void {
     const deviceState = this.getLocalStorageState(deviceId);

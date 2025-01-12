@@ -2,7 +2,7 @@
 .table {
   width: 100%;
   /* Ensures the table spans the full width */
-  margin-bottom: 1rem;
+  margin-bottom: 5rem;
   border-collapse: collapse;
   /* Ensures no space between cells */
 }
@@ -25,7 +25,6 @@
 
 /* Table Body Styling */
 .table tbody td {
-  vertical-align: middle;
   /* Centers text vertically */
   padding: 10px;
   /* Space around text in cells */
@@ -43,15 +42,6 @@
   /* Uniform row height */
 }
 
-/* Responsive Table Scroll */
-.table-responsive {
-  max-height: 500px;
-  /* Limits table height for better scrolling */
-  overflow-y: auto;
-  /* Adds vertical scroll if needed */
-  border: 1px solid #dee2e6;
-  /* Table border for clarity */
-}
 
 /* Highlight Hovered Row */
 .table tbody tr:hover {
