@@ -20,7 +20,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let schedule of schedules">
+        <tr *ngFor="let schedule of paginatedSchedules">
           <td>{{ schedule.deviceId.name }}</td>
           <td>{{ schedule.advertisementIds.length }} ads</td>
           <td>{{ schedule.instantData?.titleVideo || 'Waiting for data...' }}</td>
@@ -32,7 +32,7 @@
                   <th>Screen</th>
                   <th>App</th>
                   <th>Playlist</th>
-                  <th>Log</th>
+                  <th>Views</th>
                 </tr>
               </thead>
               <tbody>
@@ -42,43 +42,43 @@
                     <span class="mx-2" title="System">
                       <i class="fas fa-circle" [ngClass]="{
                         'dot-green': schedule.SystemState === 'boot_complete',
-                        'dot-red': schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive'
-                      }"></i>                    </span>
+                        'dot-red': schedule.SystemState !== 'boot_complete'
+                      }"></i>
+                    </span>
                   </td>
                   <!-- Screen Status -->
                   <td>
                     <span class="mx-2" title="Screen">
                       <i class="fas fa-circle" [ngClass]="{
                         'dot-green': schedule.TVstate === 'on',
-                        'dot-red': schedule.TVstate === 'off' || schedule.TVstate === 'inactive'
-                      }"></i> </span>   
+                        'dot-red': schedule.TVstate !== 'on'
+                      }"></i>
+                    </span>
                   </td>
                   <!-- App Status -->
                   <td>
-                    <!-- 
-                      Default is red (background/inactive).
-                      Switches to green if appState = 'foreground'.
-                    -->
                     <span class="mx-2" title="App">
                       <i class="fas fa-circle" [ngClass]="{
-                          'dot-green': schedule.appState === 'foreground',
-                          'dot-red': schedule.appState === 'background' || schedule.appState === 'inactive'
-                        }"></i>
-                      App
+                        'dot-green': schedule.appState === 'foreground',
+                        'dot-red': schedule.appState !== 'foreground',
+
+                      }"></i>
+                      
                     </span>
+
                   </td>
-                  <!-- Playlist Number -->
+                  <!-- Playlist Status -->
                   <td>
-                    <span *ngIf="!schedule.instantData?.error" class="mx-2" title="Playlist">
+                    <span *ngIf="schedule.instantData" class="mx-2" title="Playlist">
                       <i class="fas fa-circle" [ngClass]="{
                           'dot-green': schedule.instantData?.titleVideo,
                           'dot-blinking': !schedule.instantData?.titleVideo
                         }"></i>
                       N° {{ schedule.instantData?.index || '' }}
                     </span>
-                    <span *ngIf="schedule.instantData?.error" class="mx-2" title="Error">
-                      <i class="fas fa-circle text-danger"></i>
-                      Error
+                    <span *ngIf="!schedule.instantData" class="mx-2" title="Playlist">
+                      <i class="fas fa-circle dot-red"></i>
+                      N/A
                     </span>
                   </td>
                   <!-- Log Details -->
@@ -103,6 +103,12 @@
         </tr>
       </tbody>
     </table>
+    <!-- Pagination Controls -->
+    <div class="pagination-controls">
+      <button (click)="previousPage()" [disabled]="pageIndex === 0">Previous</button>
+      <span>Page {{ pageIndex + 1 }} of {{ totalPages }}</span>
+      <button (click)="nextPage()" [disabled]="pageIndex >= totalPages - 1">Next</button>
+    </div>
   </div>
 
   <!-- Loading Spinner -->
@@ -123,37 +129,34 @@
   </div>
 
   <!-- Modal -->
-  <!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">God's Eye View</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <!-- Modal Body -->
-      <div class="modal-body">
-       
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Device Log</h5>
-                <p class="card-text">{{ deviceLogs[selectedDeviceId] || 'No log available' }}</p>
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">God's Eye View</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Device Log</h5>
+                  <p class="card-text">{{ deviceLogs[selectedDeviceId] || 'No log available' }}</p>
+                </div>
               </div>
             </div>
           </div>
-         
         </div>
-      </div>
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
-
 </div>

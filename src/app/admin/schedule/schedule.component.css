@@ -105,17 +105,17 @@
 /* Define the blinking animation */
 @keyframes blinking {
   0% {
-    color: orange;
+    color:  #00FF00;
     /* Start with orange */
   }
 
   50% {
-    color: rgb(165, 3, 3);
+    color: red;
     /* Transition to black */
   }
 
   100% {
-    color: orange;
+    color:  #00FF00;
     /* Back to orange */
   }
 }

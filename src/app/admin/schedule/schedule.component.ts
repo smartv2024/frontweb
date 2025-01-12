@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { SocketService } from '../../services/socket.service';
 import { Subscription } from 'rxjs';
 import { AdminService } from '../admin.service';
-
+const INACTIVITY_TIMEOUT_APP = 300000; // 5 minutes
+const INACTIVITY_TIMEOUT_SCREEN = 600000; // 10 minutes
+const INACTIVITY_TIMEOUT_AD = 120000; // 2 minutes
 @Component({
   selector: 'app-schedule',
   templateUrl: './schedule.component.html',
@@ -12,8 +14,12 @@ import { AdminService } from '../admin.service';
 })
 export class ScheduleComponent implements OnInit, OnDestroy {
   schedules: any[] = [];
+  paginatedSchedules: any[] = [];
   loading: boolean = false;
   error: string = '';
+  pageIndex = 0;
+  pageSize = 5;
+  totalPages = 0;
 
   private subscriptions: Subscription[] = [];
   private mismatchTimeouts: { [deviceId: string]: any } = {};
@@ -31,48 +37,99 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private router: Router,
     private socketService: SocketService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
     this.loadSchedules();
-
+    this.updatePagination();
+  
+    // Initialize device states from localStorage
+    this.schedules.forEach((schedule) => {
+      const deviceState = this.getLocalStorageState(schedule.deviceId.deviceId);
+  
+      // Initialize AppState
+      if (deviceState.isAppStateTimePassed && deviceState.NoResponse) {
+        schedule.appState = 'inactive'; // RED
+      } else {
+        schedule.appState = deviceState.LastAppState;
+      }
+  
+      // Initialize TVState
+      if (deviceState.NoResponse) {
+        schedule.TVstate = 'off'; // RED
+      } else {
+        schedule.TVstate = deviceState.LastTVstate; // 'on' or 'off'
+      }
+    });
+  
     this.socketService.onConnect().subscribe(() => {
       console.log('Socket is connected, setting up subscriptions');
       this.subscribeToDeviceUpdates();
       this.StateApp();
-      // If needed: this.TVStateWeb();
       this.oneRefresh();
       this.TVStateWeb();
-      this.SystemStateWeb()
+      this.SystemStateWeb();
     });
   }
-
   oneRefresh(): void {
     this.socketService.listen<any>('returnStateWeb').subscribe((data: any) => {
       console.log('Received ReturnStateWeb event:', data);
+
       // Clear old inactivity timer
       if (this.inactivityTimers[data.deviceId]) {
         clearTimeout(this.inactivityTimers[data.deviceId]);
       }
 
-      // Update the appState
+      // Update the appState in the component (but do not update localStorage here)
       this.schedules = this.schedules.map((schedule) => {
         if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceState = this.getLocalStorageState(data.deviceId);
           return {
             ...schedule,
-            // If data.state === 'foreground', it turns green;
-            // If data.state === 'background', stays red.
-            appState: data.lastAppState,
-            TVstate: data.lastTvState,
-            SystemState:data.lastSystemState
+            appState: deviceState.NoResponse ? 'inactive' : data.lastAppState,
+            TVstate: deviceState.NoResponse ? 'inactive' : data.lastTvState,
+            SystemState: data.lastSystemState
           };
         }
         return schedule;
       });
       this.cdr.detectChanges();
+
+      // Set a new inactivity timer
+      this.ngZone.runOutsideAngular(() => {
+        this.inactivityTimers[data.deviceId] = setTimeout(() => {
+          console.log(`No update received for device ${data.deviceId} in 5 seconds, setting states to inactive`);
+          this.ngZone.run(() => {
+            this.schedules = this.schedules.map((schedule) => {
+              if (schedule.deviceId.deviceId === data.deviceId) {
+                this.updateLocalStorageState(
+                  data.deviceId,
+                  'inactive',
+                  'inactive',
+                  true, // isAppStateTimePassed
+                  true, // NoResponse
+                  0 // counterAppState
+                );
+                return {
+                  ...schedule,
+                  appState: 'inactive',
+                  TVstate: 'inactive'
+                };
+              }
+              return schedule;
+            });
+            this.updatePagination();
+            this.cdr.detectChanges();
+          });
+        }, INACTIVITY_TIMEOUT_APP);
+      });
+      this.updatePagination();
+      this.cdr.detectChanges();
     });
   }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     Object.values(this.mismatchTimeouts).forEach((timeout) => clearTimeout(timeout));
@@ -82,7 +139,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     Object.values(this.inactivityTimers).forEach((timer) => clearTimeout(timer));
   }
 
-  SystemStateWeb():void{
+  SystemStateWeb(): void {
     this.socketService.listen<any>('SystemStateWeb').subscribe((data: any) => {
       console.log(`Received SystemStateWeb for device ${data.deviceId}:`, data);
 
@@ -96,22 +153,17 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         if (schedule.deviceId.deviceId === data.deviceId) {
           return {
             ...schedule,
-            // If data.state === 'foreground', it turns green;
-            // If data.state === 'background', stays red.
             SystemState: data.state,
           };
         }
         return schedule;
       });
 
-     
       this.updateStates(data.deviceId);
-
+      this.updatePagination();
       this.cdr.detectChanges();
     });
   }
-
-
 
   private loadSchedules(): void {
     this.loading = true;
@@ -121,26 +173,26 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           console.log(response);
           this.schedules = response.data
             .filter((schedule: any) => schedule.deviceId && !schedule.deviceId.isDeleted)
-            .map((schedule: any) => ({
-              ...schedule,
-              advertisementIds: schedule.advertisementIds.filter(
-                (ad: { isDeleted: boolean }) => !ad.isDeleted
-              ),
-              endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
+            .map((schedule: any) => {
+              const deviceState = this.getLocalStorageState(schedule.deviceId.deviceId);
+              return {
+                ...schedule,
+                advertisementIds: schedule.advertisementIds.filter(
+                  (ad: { isDeleted: boolean }) => !ad.isDeleted
+                ),
+                endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
+                appState: deviceState.LastAppState,
+                TVstate: deviceState.LastTVstate
+              };
+            });
 
-              // 1) Make default dot color red by setting appState to 'background'
-              appState: 'background',
-            }));
-
-          // ---------------------------
-          // NEW LINES ADDED: Emit device IDs
           const devices = this.schedules
             .map((s) => s.deviceId?.deviceId)
             .filter((id) => !!id);
           this.socketService.emit('checkStates', { devices });
-          // ---------------------------
 
           this.loading = false;
+          this.updatePagination();
         },
         error: (error) => {
           this.error = error.error?.message || 'Error loading schedules';
@@ -178,7 +230,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectedDeviceId!: string ;
+  selectedDeviceId!: string;
 
   openModalGods(deviceId: string): void {
     this.selectedDeviceId = deviceId;
@@ -195,6 +247,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     // Listen to currentAdWeb for index/error updates
     this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
+      console.log(`Received currentAdWeb for device ${data.deviceId}:`, data);
       this.schedules = this.schedules.map((schedule) => {
         if (schedule.deviceId.deviceId === data.deviceId) {
           const adsLength = schedule.advertisementIds.length;
@@ -204,7 +257,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
             clearTimeout(this.mismatchTimeouts[data.deviceId]);
             delete this.mismatchTimeouts[data.deviceId];
           }
-
+          console.log(data.index)
           // Check for mismatched index
           if (data.index + 1 === adsLength) {
             return {
@@ -212,7 +265,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
               instantData: {
                 titleVideo: data.title || 'No title available for this device',
                 index: data.index + 1,
-                error: false,
+                error: false, // Ensure error is set to false on successful update
               },
             };
           } else {
@@ -230,8 +283,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
                 }
                 return s;
               });
+              this.updatePagination();
               this.cdr.detectChanges();
-            }, 120000); // or 30000 for 30s
+            }, 120000); // 2 minutes
           }
 
           // Check for repeated index
@@ -250,6 +304,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
                   }
                   return s;
                 });
+                this.updatePagination();
                 this.cdr.detectChanges();
               }, 120000);
             }
@@ -260,22 +315,21 @@ export class ScheduleComponent implements OnInit, OnDestroy {
             }
           }
 
+          // Update last index
           this.lastIndices[data.deviceId] = data.index;
 
-          // Update schedule
           return {
             ...schedule,
             instantData: {
-              titleVideo: data.title || 'No title available for this device',
-              index: data.index + 1,
-              error: false,
+              ...schedule.instantData,
+              error: false, // Reset error on successful update
             },
           };
         }
         return schedule;
       });
       this.updateStates(data.deviceId);
-
+      this.updatePagination();
       this.cdr.detectChanges();
     });
   }
@@ -283,82 +337,47 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   // Listen to AppStateWeb: changes default dot from red => green if foreground
   StateApp(): void {
     this.socketService.listen<any>('AppStateWeb').subscribe((data: any) => {
-      console.log(`Received AppStateWeb for device ${data.deviceId}:`, data);
-
-      // Clear old inactivity timer
-      if (this.inactivityTimers[data.deviceId]) {
-        clearTimeout(this.inactivityTimers[data.deviceId]);
-      }
-
-      // Update the appState
-      this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === data.deviceId) {
-          return {
-            ...schedule,
-            // If data.state === 'foreground', it turns green;
-            // If data.state === 'background', stays red.
-            appState: data.state,
-          };
-        }
-        return schedule;
-      });
-
-      // 30s timer: if no new message, set to 'inactive' (also red)
-      this.inactivityTimers[data.deviceId] = setTimeout(() => {
-        this.schedules = this.schedules.map((schedule) => {
-          if (schedule.deviceId.deviceId === data.deviceId) {
-            return {
-              ...schedule,
-              appState: 'inactive',
-            };
-          }
-          return schedule;
-        });
-        this.cdr.detectChanges();
-      }, 50000);
-      this.updateStates(data.deviceId);
-
+     
+      const deviceState = this.getLocalStorageState(data.deviceId);
+  
+      // Reset inactivity timer
+      this.startAppStateInactivityTimer(data.deviceId);
+  
+      // Update localStorage
+      this.updateLocalStorageState(
+        data.deviceId,
+        data.state, // LastAppState
+        deviceState.LastTVstate,
+        false, // isAppStateTimePassed
+        false, // NoResponse
+        deviceState.counterAppState
+      );
+  
+      // Update the app state
+      this.updateAppState(data.deviceId);
       this.cdr.detectChanges();
     });
   }
 
   TVStateWeb(): void {
     this.socketService.listen<any>('TVStateWeb').subscribe((data: any) => {
-      console.log(`Received TVStateWeb for device ${data.deviceId}:`, data);
-
-      // Clear old inactivity timer
-      if (this.inactivityTimers[data.deviceId]) {
-        clearTimeout(this.inactivityTimers[data.deviceId]);
-      }
-
-      // Update the appState
-      this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === data.deviceId) {
-          return {
-            ...schedule,
-            // If data.state === 'foreground', it turns green;
-            // If data.state === 'background', stays red.
-            TVstate: data.state,
-          };
-        }
-        return schedule;
-      });
-
-      // 30s timer: if no new message, set to 'inactive' (also red)
-      this.inactivityTimers[data.deviceId] = setTimeout(() => {
-        this.schedules = this.schedules.map((schedule) => {
-          if (schedule.deviceId.deviceId === data.deviceId) {
-            return {
-              ...schedule,
-              TVstate: 'off',
-            };
-          }
-          return schedule;
-        });
-        this.cdr.detectChanges();
-      }, 20000);
-      this.updateStates(data.deviceId);
-
+      const deviceState = this.getLocalStorageState(data.deviceId);
+  
+      // Reset inactivity timer
+      this.startTVStateInactivityTimer(data.deviceId);
+  
+      // Update localStorage
+      this.updateLocalStorageState(
+        data.deviceId,
+        deviceState.LastAppState,
+        data.state, // LastTVstate ('on' or 'off')
+        deviceState.isAppStateTimePassed,
+        false, // NoResponse
+        deviceState.counterAppState
+      );
+  
+      // Update the TV state
+      this.updateTVState(data.deviceId);
       this.cdr.detectChanges();
     });
   }
@@ -366,7 +385,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private updateStates(deviceId: string): void {
     const schedule = this.schedules.find(s => s.deviceId.deviceId === deviceId);
     if (!schedule) return;
-  
+
     // System State Logic
     if (schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive') {
       schedule.SystemState = 'inactive';
@@ -376,7 +395,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.logState(deviceId, 'All system is shut down');
       return;
     }
-  
+
     // Screen State Logic
     if (schedule.TVstate === 'off' || schedule.TVstate === 'inactive') {
       schedule.TVstate = 'off';
@@ -385,7 +404,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.logState(deviceId, 'TV is in sleep mode or screen is turned off, please turn on the screen');
       return;
     }
-  
+
     // App State Logic
     if (schedule.appState === 'background' || schedule.appState === 'inactive') {
       schedule.appState = 'inactive';
@@ -393,20 +412,164 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.logState(deviceId, 'App is not running or is running in background, check your App');
       return;
     }
-  
+
     // Current Ad State Logic
     if (!schedule.instantData.titleVideo || schedule.instantData.error) {
       this.logState(deviceId, 'Issue with playlist, probably blocked, try relaunching the playlist by editing the schedule');
       return;
     }
-  
+
     // All Good
     this.logState(deviceId, 'All Good');
+    this.updateLocalStorageState(deviceId, schedule.appState, schedule.TVstate, false, false, 0);
   }
-  
+
   private logState(deviceId: string, message: string): void {
     console.log(`Device ${deviceId}: ${message}`);
     this.deviceLogs[deviceId] = message;
     this.cdr.detectChanges(); // Ensure Angular detects the change
   }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.schedules.length / this.pageSize);
+    const start = this.pageIndex * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedSchedules = this.schedules.slice(start, end);
+  }
+
+  nextPage(): void {
+    if (this.pageIndex < this.totalPages - 1) {
+      this.pageIndex++;
+      this.updatePagination();
+    }
+  }
+
+  previousPage(): void {
+    if (this.pageIndex > 0) {
+      this.pageIndex--;
+      this.updatePagination();
+    }
+  }
+  private updateLocalStorageState(
+    deviceId: string,
+    LastAppState: string,
+    LastTVstate: string,
+    isAppStateTimePassed: boolean,
+    NoResponse: boolean,
+    counterAppState: number
+  ): void {
+    const state = {
+      LastAppState,
+      LastTVstate,
+      isAppStateTimePassed,
+      NoResponse,
+      counterAppState,
+    };
+    localStorage.setItem(`deviceState_${deviceId}`, JSON.stringify(state));
+  }
+  
+  private getLocalStorageState(deviceId: string): {
+    LastAppState: string;
+    LastTVstate: string;
+    isAppStateTimePassed: boolean;
+    NoResponse: boolean;
+    counterAppState: number;
+  } {
+    const state = localStorage.getItem(`deviceState_${deviceId}`);
+    return state
+      ? JSON.parse(state)
+      : {
+          LastAppState: 'background',
+          LastTVstate: 'off', // Default to 'off'
+          isAppStateTimePassed: false,
+          NoResponse: false,
+          counterAppState: 0,
+        };
+  }
+
+  private updateAppState(deviceId: string): void {
+    const schedule = this.schedules.find(s => s.deviceId.deviceId === deviceId);
+    if (!schedule) return;
+  
+    const deviceState = this.getLocalStorageState(deviceId);
+  
+    // Check if the app state should be RED
+    if (deviceState.isAppStateTimePassed && deviceState.NoResponse) {
+      schedule.appState = 'inactive'; // RED
+    } else {
+      schedule.appState = deviceState.LastAppState; // Use LastAppState
+    }
+  
+    // Update the UI
+    this.cdr.detectChanges();
+  }
+  private startAppStateInactivityTimer(deviceId: string): void {
+    const deviceState = this.getLocalStorageState(deviceId);
+  
+    // Clear existing timer
+    if (this.inactivityTimers[deviceId]) {
+      clearTimeout(this.inactivityTimers[deviceId]);
+    }
+  
+    // Start a new timer
+    this.inactivityTimers[deviceId] = setTimeout(() => {
+      this.updateLocalStorageState(
+        deviceId,
+        deviceState.LastAppState,
+        deviceState.LastTVstate,
+        true, // isAppStateTimePassed
+        true, // NoResponse
+        deviceState.counterAppState
+      );
+  
+      // Update the app state to RED
+      this.updateAppState(deviceId);
+      this.cdr.detectChanges();
+    }, INACTIVITY_TIMEOUT_APP); // 5 minutes (300,000 milliseconds)
+  }
+
+
+
+  private startTVStateInactivityTimer(deviceId: string): void {
+    const deviceState = this.getLocalStorageState(deviceId);
+  
+    // Clear existing timer
+    if (this.inactivityTimers[deviceId]) {
+      clearTimeout(this.inactivityTimers[deviceId]);
+    }
+  
+    // Start a new timer
+    this.inactivityTimers[deviceId] = setTimeout(() => {
+      this.updateLocalStorageState(
+        deviceId,
+        deviceState.LastAppState,
+        'off', // Set TVState to 'off' due to inactivity
+        deviceState.isAppStateTimePassed,
+        true, // NoResponse for TVState
+        deviceState.counterAppState
+      );
+  
+      // Update the TV state to 'off'
+      this.updateTVState(deviceId);
+      this.cdr.detectChanges();
+    }, INACTIVITY_TIMEOUT_SCREEN); // 10 minutes
+  }
+  
+  private updateTVState(deviceId: string): void {
+    const schedule = this.schedules.find((s) => s.deviceId.deviceId === deviceId);
+    if (!schedule) return;
+  
+    const deviceState = this.getLocalStorageState(deviceId);
+  
+    // Check if the TV state should be 'off' due to inactivity
+    if (deviceState.NoResponse) {
+      schedule.TVstate = 'off'; // RED
+    } else {
+      schedule.TVstate = deviceState.LastTVstate; // Use LastTVstate
+    }
+  
+    // Update the UI
+    this.cdr.detectChanges();
+  }
+  
 }
