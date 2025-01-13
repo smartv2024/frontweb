@@ -91,11 +91,18 @@ export class ScheduleComponent implements OnInit, OnDestroy {
             ...schedule,
             appState: deviceState.NoResponse ? 'inactive' : data.lastAppState,
             TVstate: deviceState.NoResponse ? 'inactive' : data.lastTvState,
-            SystemState: data.lastSystemState
+            SystemState: data.lastSystemState 
           };
-        }
-        return schedule;
+
+        }else{
+          return {
+            ...schedule,
+            SystemState: 'shutting_down'
+          };}
+   
+     
       });
+
       this.cdr.detectChanges();
 
       // Set a new inactivity timer
