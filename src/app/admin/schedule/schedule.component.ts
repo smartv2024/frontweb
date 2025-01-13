@@ -329,7 +329,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadSchedules(): void {
+   loadSchedules(): void {
     this.loading = true;
       this.adminService.getAllSchedule().subscribe({
         next: (response: any) => {
