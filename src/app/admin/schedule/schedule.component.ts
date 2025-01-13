@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { SocketService } from '../../services/socket.service';
-import { Subscription } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { AdminService } from '../admin.service';
 const INACTIVITY_TIMEOUT_APP = 300000; // 5 minutes
 const INACTIVITY_TIMEOUT_SCREEN = 600000; // 10 minutes
@@ -36,6 +36,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   // Add state control variables
   private blockAppState: { [key: string]: boolean } = {};
   private blockAds: { [key: string]: boolean } = {};
+  private intervalId: any;
 
   constructor(
     private adminService: AdminService,
@@ -46,10 +47,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loadSchedules();
+    this.loadSchedules()
     this.updatePagination();
-  
-    // Initialize device states from localStorage
+   // Initialize device states from localStorage
     this.schedules.forEach((schedule) => {
       const deviceState = this.getLocalStorageState(schedule.deviceId.deviceId);
   
@@ -77,6 +77,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       this.SystemStateWeb();
     });
   }
+
+
   oneRefresh(): void {
     this.socketService.listen<any>('returnStateWeb').subscribe((data: any) => {
       console.log('Received ReturnStateWeb event:', data);
@@ -329,7 +331,6 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private loadSchedules(): void {
     this.loading = true;
-    this.subscriptions.push(
       this.adminService.getAllSchedule().subscribe({
         next: (response: any) => {
           console.log(response);
@@ -344,7 +345,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
                 ),
                 endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
                 appState: deviceState.LastAppState,
-                TVstate: deviceState.LastTVstate
+                TVstate: deviceState.LastTVstate,
+                SystemState: deviceState.SystemState,
+
               };
             });
 
@@ -361,9 +364,45 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
       })
-    );
+    
   }
 
+  SecondLoad(){
+    this.loading = true;
+      this.adminService.getAllSchedule().subscribe({
+        next: (response: any) => {
+          console.log(response);
+          this.schedules = response.data
+            .filter((schedule: any) => schedule.deviceId && !schedule.deviceId.isDeleted)
+            .map((schedule: any) => {
+              const deviceState = this.getLocalStorageState(schedule.deviceId.deviceId);
+              return {
+                ...schedule,
+                advertisementIds: schedule.advertisementIds.filter(
+                  (ad: { isDeleted: boolean }) => !ad.isDeleted
+                ),
+                endTime: this.calculateEndTime(schedule.startTime, schedule.playTime),
+                appState: deviceState.LastAppState,
+                TVstate: deviceState.LastTVstate,
+                SystemState: deviceState.SystemState,
+
+              };
+            });
+
+          const devices = this.schedules
+            .map((s) => s.deviceId?.deviceId)
+            .filter((id) => !!id);
+          this.socketService.emit('checkStates', { devices });
+
+          this.loading = false;
+          this.updatePagination();
+        },
+        error: (error) => {
+          this.error = error.error?.message || 'Error loading schedules';
+          this.loading = false;
+        },
+      })
+  }
   calculateEndTime(startTime: string, playTime: number): Date {
     return new Date(new Date(startTime).getTime() + playTime * 1000);
   }
@@ -493,6 +532,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     isAppStateTimePassed: boolean;
     NoResponse: boolean;
     counterAppState: number;
+    SystemState?:string
   } {
     const state = localStorage.getItem(`deviceState_${deviceId}`);
     return state
@@ -503,6 +543,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           isAppStateTimePassed: false,
           NoResponse: false,
           counterAppState: 0,
+          SystemState:'shutting_down'
         };
   }
 
