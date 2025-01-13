@@ -169,6 +169,17 @@ export class ScheduleComponent implements OnInit, OnDestroy {
               }
             };
           }
+          const deviceState = this.getLocalStorageState(data.deviceId);
+          
+          this.updateLocalStorageState(
+                 data.deviceId,
+                 data.state,
+                 deviceState.LastTVstate,
+                 false,
+                 false,
+                 deviceState.counterAppState,
+                 "shutting_down"
+               );
           return schedule;
         });
         this.cdr.detectChanges();
@@ -185,10 +196,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       }
 
       // Existing code...
+
       if (this.inactivityTimers[data.deviceId]) {
         clearTimeout(this.inactivityTimers[data.deviceId]);
       }
-
+     
       this.schedules = this.schedules.map((schedule) => {
         if (schedule.deviceId.deviceId === data.deviceId) {
           return {
@@ -198,6 +210,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         }
         return schedule;
       });
+      this.cdr.detectChanges();
 
       this.updateStates(data.deviceId);
       this.updatePagination();
@@ -274,7 +287,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
               }
             };
           }
+          this.cdr.detectChanges();
+
           return schedule;
+          
         });
       } else {
         // App is in foreground, enable ad updates
@@ -446,35 +462,26 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     // System State Logic
     if (schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive') {
-      schedule.SystemState = 'inactive';
-      schedule.TVstate = 'off';
-      schedule.appState = 'inactive';
-      schedule.instantData.error = true;
-      this.logState(deviceId, 'All system is shut down');
-      return;
+        this.logState(deviceId, 'All system is shut down');
+        return;
     }
 
     // Screen State Logic
-    if (schedule.TVstate === 'off' || schedule.TVstate === 'inactive') {
-      schedule.TVstate = 'off';
-      schedule.appState = 'inactive';
-      schedule.instantData.error = true;
-      this.logState(deviceId, 'TV is in sleep mode or screen is turned off, please turn on the screen');
-      return;
+    if (schedule.TVstate !== 'on') {
+        this.logState(deviceId, 'TV is in sleepmode or screen is turned off, please turn on the screen');
+        return;
     }
 
     // App State Logic
-    if (schedule.appState === 'background' || schedule.appState === 'inactive') {
-      schedule.appState = 'inactive';
-      schedule.instantData.error = true;
-      this.logState(deviceId, 'App is not running or is running in background, check your App');
-      return;
+    if (schedule.appState !== 'foreground') {
+        this.logState(deviceId, 'App is not running or is running in background, check your App');
+        return;
     }
 
     // Current Ad State Logic
     if (!schedule.instantData.titleVideo || schedule.instantData.error) {
-      this.logState(deviceId, 'Issue with playlist, probably blocked, try relaunching the playlist by editing the schedule');
-      return;
+        this.logState(deviceId, 'Issue with playlist, probably blocked, try relaunching the playlist by editing the schedule');
+        return;
     }
 
     // All Good
@@ -509,12 +516,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
   }
   private updateLocalStorageState(
-    deviceId: string,
-    LastAppState: string,
-    LastTVstate: string,
-    isAppStateTimePassed: boolean,
-    NoResponse: boolean,
-    counterAppState: number
+    deviceId?: string,
+    LastAppState?: string,
+    LastTVstate?: string,
+    isAppStateTimePassed?: boolean,
+    NoResponse?: boolean,
+    counterAppState?: number,
+    SystemState?:string
+
   ): void {
     const state = {
       LastAppState,
@@ -522,6 +531,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       isAppStateTimePassed,
       NoResponse,
       counterAppState,
+      SystemState
+
     };
     localStorage.setItem(`deviceState_${deviceId}`, JSON.stringify(state));
   }
@@ -534,6 +545,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     counterAppState: number;
     SystemState?:string
   } {
+    this.cdr.detectChanges();
+
     const state = localStorage.getItem(`deviceState_${deviceId}`);
     return state
       ? JSON.parse(state)
@@ -614,6 +627,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
   
   private updateTVState(deviceId: string): void {
+    this.cdr.detectChanges();
+
     const schedule = this.schedules.find((s) => s.deviceId.deviceId === deviceId);
     if (!schedule) return;
   
@@ -630,4 +645,40 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
   
+  public getDeviceStatus(schedule: any): string {
+    if (!schedule) return 'No log available';
+
+    // Check states in hierarchical order
+    if (schedule.SystemState === 'shutting_down' || schedule.SystemState === 'inactive') {
+        return 'All system is shut down';
+    }
+    
+    if (schedule.TVstate !== 'on') {
+        return 'TV is in sleepmode or screen is turned off, please turn on the screen';
+    }
+    
+    if (schedule.appState !== 'foreground') {
+        return 'App is not running or is running in background, check your App';
+    }
+    
+    // If system, screen, and app are green but currentAd is red
+    if (schedule.SystemState !== 'shutting_down' && 
+        schedule.TVstate === 'on' && 
+        schedule.appState === 'foreground' && 
+        (schedule.instantData?.error || !schedule.instantData?.titleVideo)) {
+        return 'Issue with playlist, probably blocked, try relaunching the playlist by editing the schedule';
+    }
+    
+    // If everything is working correctly
+    if (schedule.SystemState !== 'shutting_down' && 
+        schedule.TVstate === 'on' && 
+        schedule.appState === 'foreground' && 
+        schedule.instantData?.titleVideo && 
+        !schedule.instantData?.error) {
+        return 'All Good';
+    }
+    this.cdr.detectChanges();
+
+    return 'System status unknown';
+  }
 }

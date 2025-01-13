@@ -88,12 +88,15 @@
                   </span>
                   </td>
                   <!-- Log Details -->
-                  <td>
-                    <span class="mx-2" title="Views" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                      (click)="openModalGods(schedule.deviceId.deviceId)">
-                      <i class="fas fa-eye"></i>
+                  <td style="width: 150px; word-wrap: break-word;">
+                    <span class="mx-2" [ngClass]="{
+                      'text-success': getDeviceStatus(schedule) === 'All Good',
+                      'text-danger': getDeviceStatus(schedule) !== 'All Good'
+                    }">
+                      {{ getDeviceStatus(schedule) }}
                     </span>
                   </td>
+                  
                 </tr>
               </tbody>
             </table>
