@@ -14,6 +14,6 @@ export default `<!doctype html>
   <app-root></app-root>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<link rel="modulepreload" href="chunk-3SBVSYCC.js"><script src="polyfills-EQXJKH7W.js" type="module"></script><script src="main-24SP2I2I.js" type="module"></script></body>
+<link rel="modulepreload" href="chunk-L2642ATL.js"><script src="polyfills-EQXJKH7W.js" type="module"></script><script src="main-BHKDAJSR.js" type="module"></script></body>
 </html>
 `;
