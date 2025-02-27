@@ -16,4 +16,4 @@ export default `<!DOCTYPE html><html lang="en" data-beasties-container><head>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <link rel="modulepreload" href="chunk-L2642ATL.js"><script src="polyfills-EQXJKH7W.js" type="module"></script><script src="main-W62FPQBN.js" type="module"></script>
 
-<script id="ng-state" type="application/json">{"__nghData__":[{},{"t":{"5":"t8","6":"t9","7":"t10"},"c":{"5":[],"6":[],"7":[{"i":"t10","r":1,"t":{"4":"t11","9":"t12"},"c":{"4":[],"9":[]}}]}},{"c":{"1":[{"i":"c46112965","r":1}]}},{"c":{"0":[{"i":"c1561001783","r":1}]}}]}</script></body></html>`;
+<script id="ng-state" type="application/json">{"__nghData__":[{},{"t":{"5":"t10","6":"t11","7":"t12"},"c":{"5":[],"6":[],"7":[{"i":"t12","r":1,"t":{"4":"t13","9":"t14"},"c":{"4":[],"9":[]}}]}},{"c":{"1":[{"i":"c46112965","r":1}]}},{"c":{"0":[{"i":"c1561001783","r":1}]}}]}</script></body></html>`;
