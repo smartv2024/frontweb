@@ -91,7 +91,10 @@
   animation: blinking 1s infinite;
   /* Runs animation infinitely every 1 second */
 }
-
+/* Orange dot for intermediate state */
+.dot-orange {
+  color: #ff9800 !important; /* Orange color */
+}
 /* Define the blinking animation */
 @keyframes blinking {
   0% {
