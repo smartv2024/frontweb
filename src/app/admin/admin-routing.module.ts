@@ -13,6 +13,7 @@ import { ViewScheduleComponent } from './schedule/view-schedule/view-schedule.co
 import { ListUsersComponent } from './users/list-users/list-users.component';
 import { AddUserComponent } from './users/add-user/add-user.component';
 import { ProfileComponent } from './users/profile/profile.component';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 const routes: Routes = [
   {
@@ -50,7 +51,7 @@ const routes: Routes = [
       },
       {
         path:'archivedDevices/:userId',
-        component:ArchiveDevComponent
+        component:ArchiveDevComponent,
       },
       {
         path:'Makeschedule',

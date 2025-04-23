@@ -78,9 +78,8 @@
           "builder": "@angular-devkit/build-angular:prerender",
           "options": {
             "browserTarget": "smartv:build:production",
-            "routes": ["/", "/admin/Makeschedule"],
-            "maxWait": 60000
-          }
+            "routes": ["/", "/admin/Makeschedule","/admin/Devices"]
+                    }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
