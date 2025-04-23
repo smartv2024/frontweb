@@ -1,3 +1,4 @@
+
 <div class="container ad-list-container">
     <h2 class="list-title">Advertisement List</h2>
 
@@ -31,6 +32,9 @@
           <tr>
             <th>#</th>
             <th>Name</th>
+            <th *ngIf="userRole=='admin'">User name</th>
+            <th *ngIf="userRole=='admin'">User Email</th>
+
             <th>Description</th>
             <th>Orientation</th>
             <th>Video URL</th>
@@ -41,6 +45,8 @@
           <tr *ngFor="let ad of filteredAdvertisements(); let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ ad.name }}</td>
+            <td *ngIf="userRole=='admin'">{{ ad.userId?.username || 'N/A' }}</td>
+            <td *ngIf="userRole=='admin'">{{ ad.userId?.email || 'N/A' }}</td>
             <td>{{ ad.description }}</td>
             <td>{{ ad.orientation | titlecase }}</td>
             <td>
@@ -93,7 +99,7 @@
     <div class="custom-modal" *ngIf="isModalOpen">
       <div class="modal-overlay" (click)="closeModal()"></div>
       <div class="modal-content">
-        <button class="modal-close" (click)="closeModal()">✖</button>
+        <button class="modal-close" (click)="closeModal()">×</button>
         <h5 class="modal-title">Advertisement Video</h5>
         <div class="video-container">
           <video
@@ -101,18 +107,20 @@
             [src]="selectedVideoUrl"
             controls
             class="modal-video"
+            autoplay
           ></video>
         </div>
       </div>
     </div>
   
-    <!-- Custom Modal for Editing -->
-    <div class="edit-modal" *ngIf="isEditModalOpen">
-      <div class="edit-modal-overlay" (click)="closeEditModal()"></div>
-      <div class="edit-modal-content">
-        <button class="modal-close" (click)="closeEditModal()">✖</button>
-        <h5 class="modal-title">Edit Advertisement</h5>
-        <form (ngSubmit)="updateAdvertisement()">
+    <!-- Edit Modal -->
+    <div class="custom-modal" *ngIf="isEditModalOpen">
+      <div class="modal-content">
+        <button class="modal-close" (click)="closeEditModal()">×</button>
+        <h2 class="modal-title">Edit Advertisement</h2>
+        
+        <form #editForm="ngForm" (ngSubmit)="updateAdvertisement()">
+          <!-- Basic Information -->
           <div class="form-group">
             <label for="name">Name</label>
             <input
@@ -123,6 +131,7 @@
               required
             />
           </div>
+
           <div class="form-group">
             <label for="description">Description</label>
             <textarea
@@ -133,6 +142,57 @@
               required
             ></textarea>
           </div>
+
+          <!-- Video Source Selection -->
+          <div class="form-group">
+            <label for="videoSource">Video Source</label>
+            <select
+              id="videoSource"
+              class="form-control"
+              [(ngModel)]="selectedVideoSource"
+              name="videoSource"
+              required
+            >
+              <option value="local">Upload from Computer</option>
+              <option value="youtube">YouTube Video</option>
+            </select>
+          </div>
+
+          <!-- Local File Upload -->
+          <div class="form-group" *ngIf="selectedVideoSource === 'local'">
+            <label for="videoFile" class="file-upload-label">
+              <i class="fas fa-cloud-upload-alt me-2"></i>Choose Video File
+            </label>
+            <input
+              type="file"
+              id="videoFile"
+              accept="video/*"
+              (change)="onFileSelected($event)"
+              #fileInput
+            >
+            <small class="text-muted d-block">Maximum file size: 100MB</small>
+            <div *ngIf="selectedFile" class="mt-2">
+              <span class="text-success">Selected file: {{ selectedFile.name }}</span>
+            </div>
+          </div>
+
+          <!-- YouTube URL Input -->
+          <div class="form-group" *ngIf="selectedVideoSource === 'youtube'">
+            <label for="youtubeUrl">YouTube URL</label>
+            <div class="input-group">
+              <input
+                type="text"
+                id="youtubeUrl"
+                class="form-control"
+                [(ngModel)]="youtubeUrl"
+                name="youtubeUrl"
+                placeholder="Enter YouTube URL"
+              >
+            
+            </div>
+          </div>
+
+          <!-- Orientation -->
           <div class="form-group">
             <label for="orientation">Orientation</label>
             <select
@@ -140,23 +200,59 @@
               class="form-control"
               [(ngModel)]="editAdvertisementObject.orientation"
               name="orientation"
+              required
             >
               <option *ngFor="let orientation of orientations" [value]="orientation">
                 {{ orientation | titlecase }}
               </option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="videoUrl">Video URL</label>
-            <input
-              id="videoUrl"
-              class="form-control"
-              [(ngModel)]="editAdvertisementObject.videoUrl"
-              name="videoUrl"
-              required
-            />
+
+          <!-- Messages -->
+          <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+          <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+          <!-- Upload Progress -->
+          <div class="upload-status" *ngIf="isUploading">
+            <div class="progress mt-3">
+              <div 
+                class="progress-bar" 
+                role="progressbar" 
+                [style.width.%]="uploadProgress"
+                [attr.aria-valuenow]="uploadProgress" 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+              >
+                {{uploadProgress}}%
+              </div>
+            </div>
+            <small class="text-muted">
+              {{ uploadProgress < 100 ? 'Updating content...' : 'Processing...' }}
+            </small>
           </div>
-          <button type="submit" class="btn btn-primary">Update</button>
+
+          <!-- Submit Button -->
+          <div class="mt-3">
+            <!-- Show this button when video/youtube is selected -->
+            <button 
+              *ngIf="(selectedVideoSource === 'local' && selectedFile) || (selectedVideoSource === 'youtube' && youtubeUrl)"
+              class="btn btn-primary me-2" 
+              (click)="updateAdvertisement()"
+              [disabled]="isUploading">
+              <i class="fas fa-sync-alt me-2"></i>
+              {{ isUploading ? 'Updating...' : 'Update with New Video' }}
+            </button>
+
+            <!-- Show this button when only updating attributes -->
+            <button 
+              *ngIf="!(selectedVideoSource === 'local' && selectedFile) && !(selectedVideoSource === 'youtube' && youtubeUrl)"
+              class="btn btn-secondary" 
+              (click)="updateAdvertisement()"
+              [disabled]="isUploading">
+              <i class="fas fa-save me-2"></i>
+              {{ isUploading ? 'Updating...' : 'Update Details' }}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,0 +1,131 @@
+<div class="container">
+  <h2 class="list-title">Users Management</h2>
+
+  <!-- Search and Add User Section -->
+  <div class="row g-3 align-items-center">
+    <div class="col-md-6">
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Search users..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
+        />
+      </div>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <button class="add-user-btn" (click)="navigateToAddUser()">
+        <i class="fas fa-user-plus me-2"></i>Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Add success message display -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone Number</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of getCurrentPageUsers()">
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.phoneNumber }}</td>
+          <td>
+            <span [class]="getRoleBadgeClass(user.role)">
+              {{ user.role | titlecase }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class.bg-success]="user.isActive" [class.bg-danger]="!user.isActive">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-dropdown">
+              <div ngbDropdown class="d-inline-block">
+                <button class="action-btn" id="actionDropdown" ngbDropdownToggle>
+                  <i class="fas fa-ellipsis-v"></i>
+                  Actions
+                </button>
+                <div ngbDropdownMenu aria-labelledby="actionDropdown" class="dropdown-menu">
+                  <!-- Status Toggle -->
+                  <button 
+                    ngbDropdownItem 
+                    [class]="'dropdown-item ' + (user.isActive ? 'deactivate' : 'activate')"
+                    (click)="toggleUserStatus(user._id)"
+                  >
+                    <i class="fas" [class.fa-lock]="!user.isActive" [class.fa-unlock]="user.isActive"></i>
+                    {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
+                  </button>
+
+                  <!-- Reset Password -->
+                  <button 
+                    ngbDropdownItem 
+                    class="dropdown-item"
+                    (click)="resetUserPassword(user._id, user.email)"
+                  >
+                    <i class="fas fa-key"></i>
+                    Reset Password
+                  </button>
+
+                  <div class="dropdown-divider"></div>
+
+                  <!-- Role Change -->
+                  <ng-container *ngFor="let role of availableRoles">
+                    <button 
+                      *ngIf="role !== user.role"
+                      ngbDropdownItem 
+                      class="dropdown-item"
+                      (click)="changeRole(user._id, role)"
+                    >
+                      <i class="fas fa-user-shield"></i>
+                      Change Role to {{ role | titlecase }}
+                    </button>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-controls">
+    <button
+      class="btn btn-outline-primary btn-sm"
+      [disabled]="currentPage === 1"
+      (click)="previousPage()"
+    >
+      <i class="fas fa-chevron-left me-1"></i> Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button
+      class="btn btn-outline-primary btn-sm"
+      [disabled]="currentPage === totalPages"
+      (click)="nextPage()"
+    >
+      Next <i class="fas fa-chevron-right ms-1"></i>
+    </button>
+  </div>
+</div>

@@ -138,14 +138,22 @@
           <div *ngIf="ads.length > 0" class="row g-3">
             <div *ngFor="let ad of ads" class="col-md-4">
               <div class="card h-100 shadow-sm">
-                <video
-                  *ngIf="ad.videoUrl"
-                  class="card-img-top rounded-top"
-                  [src]="ad.videoUrl"
-                  controls
-                  muted
-                  preload="metadata"
-                ></video>
+                <div class="video-container">
+                  <div class="loading-spinner" *ngIf="!ad.videoLoaded">
+                    <div class="spinner"></div>
+                    <span>Loading video...</span>
+                  </div>
+                  <video
+                    *ngIf="ad.videoUrl"
+                    class="card-img-top rounded-top"
+                    [src]="ad.videoUrl"
+                    controls
+                    muted
+                    preload="metadata"
+                    (loadeddata)="ad.videoLoaded = true"
+                    [class.hidden]="!ad.videoLoaded"
+                  ></video>
+                </div>
                 <div class="card-body">
                   <div class="form-check mb-2">
                     <input

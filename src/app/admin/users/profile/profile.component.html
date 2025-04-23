@@ -1,0 +1,102 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+  </div>
+
+  <!-- Success and Error Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <form (ngSubmit)="updateProfile()" #profileForm="ngForm">
+    <div class="profile-content">
+      <!-- Role Badge -->
+      <div class="role-badge">
+        <i class="fas fa-user-tag"></i> {{ userProfile.role }}
+      </div>
+
+      <!-- Profile Fields -->
+      <div class="form-group">
+        <label for="name">Username</label>
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="userProfile.name"
+            [readonly]="!isEditing"
+            class="form-control"
+            required
+          >
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [(ngModel)]="userProfile.email"
+            [readonly]="!isEditing"
+            class="form-control"
+          >
+          <i class="fas fa-envelope"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <div class="input-wrapper">
+          <input
+            type="tel"
+            id="phone"
+            name="phoneNumber"
+            [(ngModel)]="userProfile.phoneNumber"
+            [readonly]="!isEditing"
+            class="form-control"
+            required
+          >
+          <i class="fas fa-phone"></i>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="btn-edit" 
+          (click)="toggleEdit()"
+        >
+          <i class="fas" [ngClass]="isEditing ? 'fa-times' : 'fa-edit'"></i>
+          {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+        </button>
+
+        <ng-container *ngIf="isEditing">
+          <button 
+            type="button" 
+            class="btn-reset" 
+            (click)="resetPassword()"
+          >
+            <i class="fas fa-key"></i>
+            Reset Password
+          </button>
+
+          <button 
+            type="submit" 
+            class="btn-save" 
+            [disabled]="!profileForm.form.valid || isSubmitting"
+          >
+            <i class="fas fa-save"></i>
+            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </form>
+</div>

@@ -112,3 +112,37 @@
     /* Back to orange */
   }
 }
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 150px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+video {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.d-none {
+  display: none !important;
+}

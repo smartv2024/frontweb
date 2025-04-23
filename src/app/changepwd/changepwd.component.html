@@ -1,0 +1,91 @@
+<!-- Simple Navbar -->
+<nav class="navbar navbar-dark bg-dark shadow-lg">
+  <div class="container">
+    <a class="navbar-brand">
+      <img
+        src="https://iili.io/2gvDOlt.th.png"
+        width="60"
+        height="60"
+        class="d-inline-block align-text-top"
+      />
+    </a>
+    <button class="btn btn-danger" (click)="logout()">
+      <i class="fas fa-sign-out-alt me-2"></i> Logout
+    </button>
+  </div>
+</nav>
+
+<!-- Password Change Form -->
+<div class="main-container">
+  <div class="change-password-card">
+    <div class="card-header">
+      <h2>Change Password</h2>
+    </div>
+
+    <div class="security-notice">
+      <h3>Security Update</h3>
+      <p>To enhance the security of your account, please change your password. Choose a strong password that you haven't used before.</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #passwordForm="ngForm">
+      <div class="form-group">
+        <label class="form-label">Current Password</label>
+        <div class="input-group">
+          <input
+            [type]="showCurrentPassword ? 'text' : 'password'"
+            class="form-control"
+            name="currentPassword"
+            [(ngModel)]="currentPassword"
+            required
+          >
+          <button 
+            type="button"
+            class="toggle-password"
+            (click)="showCurrentPassword = !showCurrentPassword"
+          >
+            <i [class]="showCurrentPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div class="input-group">
+          <input
+            [type]="showNewPassword ? 'text' : 'password'"
+            class="form-control"
+            name="newPassword"
+            [(ngModel)]="newPassword"
+            required
+          >
+          <button 
+            type="button"
+            class="toggle-password"
+            (click)="showNewPassword = !showNewPassword"
+          >
+            <i [class]="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-container">
+        <button 
+          type="submit" 
+          class="btn-submit"
+          [disabled]="!passwordForm.form.valid || isLoading"
+        >
+          <span *ngIf="isLoading" class="spinner-border spinner"></span>
+          Change Password
+        </button>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+<div class="form-container">
+  <div class="form-card">
+    <div class="back-button">
+      <button class="btn-back" (click)="navigateToList()">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to List</span>
+      </button>
+    </div>
+
+    <h2 class="form-title">
+      <i class="fas fa-user-plus"></i>
+      Add New User
+    </h2>
+
+    <!-- Alert Messages -->
+    <div *ngIf="successMessage" class="alert alert-success" role="alert">
+      <i class="fas fa-check-circle"></i>
+      {{ successMessage }}  
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- User Form -->
+    <form (ngSubmit)="addUser()" #userForm="ngForm">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          [(ngModel)]="userObject.username"
+          required
+          placeholder="Enter full name"
+          class="form-control"
+        >
+        <i class="fas fa-user"></i>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="userObject.email"
+          required
+          placeholder="Enter email address"
+          class="form-control"
+        >
+        <i class="fas fa-envelope"></i>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input
+          type="tel"
+          id="phone"
+          name="phoneNumber"
+          [(ngModel)]="userObject.phoneNumber"
+          required
+          placeholder="Enter phone number"
+          class="form-control"
+        >
+        <i class="fas fa-phone"></i>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select
+          id="role"
+          name="role"
+          [(ngModel)]="userObject.role"
+          required
+          class="form-control"
+        >
+          <option *ngFor="let role of roles" [value]="role">
+            {{role | titlecase}}
+          </option>
+        </select>
+        <i class="fas fa-user-shield"></i>
+      </div>
+
+
+
+      <button 
+        type="submit" 
+        class="btn-submit" 
+        [disabled]="!userForm.form.valid || isSubmitting"
+      >
+        <span *ngIf="!isSubmitting">Add User</span>
+        <div *ngIf="isSubmitting" class="spinner"></div>
+      </button>
+    </form>
+  </div>
+</div>

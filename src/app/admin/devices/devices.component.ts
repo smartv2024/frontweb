@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AdminService } from '../admin.service';
+import { AuthService } from '../../AuthService/auth.service';
 
 @Component({
   selector: 'app-devices',
@@ -24,11 +25,23 @@ export class DevicesComponent implements OnInit {
   selectedDevice: any = null; // To store the device being scheduled for ads
   selectedAds: string[] = []; // To store selected ad IDs
   isScheduleModalOpen: boolean = false; // To toggle the schedule modal
+  userId!: string;
+  filteredAds: any[] = [];
+  userRole!: string ;
 
-  constructor(private adminService: AdminService, private router: Router) {}
-
+constructor(
+    private adminService: AdminService,
+    private router: Router,
+    private authService: AuthService,
+    private route:ActivatedRoute
+  ) {
+    this.userRole = this.authService.userRole || 'user';
+    this.userId = this.authService.userId || '';
+  }
   ngOnInit() {
-    this.loadDevices();
+    this.route.params.subscribe(params => {
+      this.loadDevices();
+    });
   }
 
   // Fetch devices with isDeleted = false
@@ -38,6 +51,7 @@ export class DevicesComponent implements OnInit {
         if (data && Array.isArray(data.data)) {
           this.devices = data.data.filter(
             (device: any) => device.isDeleted === false
+            
           );
           this.filteredDevices = [...this.devices];
           this.calculatePagination();
@@ -61,15 +75,36 @@ export class DevicesComponent implements OnInit {
   }
   // Fetch all advertisements
   loadAds() {
-    this.adminService.getAds().subscribe(
-      (data: any) => {
-        this.ads = (data.data || []).filter((ad: any) => ad.isDeleted === false);
-      },
-      (error) => {
-        this.errorMessage =
-          error.error?.message || 'Failed to load advertisements.';
-      }
-    );
+    if (this.userRole === 'admin') {
+      this.adminService.getAds().subscribe(
+        (data: any) => {
+          this.ads = (data.data || []).filter(
+            (ad: any) => ad.isDeleted === false
+            
+          );
+          this.filteredAds = [...this.ads];
+        },
+        (error) => {
+          console.error('Error fetching advertisements:', error);
+          this.errorMessage =
+            error.error?.message || 'Failed to load advertisements.';
+        }
+      );
+    } else {
+      this.adminService.getAdvertisementsByUserId(this.userId).subscribe(
+        (data: any) => {
+          this.ads = (data.data || []).filter(
+            (ad: any) => ad.isDeleted === false
+          );
+          this.filteredAds = [...this.ads];
+        },
+        (error) => {
+          console.error('Error fetching advertisements:', error);
+          this.errorMessage =
+            error.error?.message || 'Failed to load advertisements.';
+        }
+      );
+    }
   }
 
   // Filter devices based on the search term

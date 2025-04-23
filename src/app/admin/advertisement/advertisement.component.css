@@ -1,426 +1,427 @@
 /* Container */
 .ad-list-container {
-    margin-top: 30px;
-    padding: 20px;
-    background: #f9f9f9;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Title */
-  .list-title {
-    font-size: 2rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  /* Alerts */
-  .alert {
-    margin-bottom: 15px;
-    border-radius: 5px;
-    padding: 10px 15px;
-    text-align: center;
-  }
-  
-  /* Table */
-  .ad-table {
-    width: 100%;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px; /* Add space below the table */
-  }
-  
-  /* Table Header */
-  .table-header {
-    background: #007bff;
-    color: white;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-  }
-  
+  margin-top: 30px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Title */
+.list-title {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Search Bar */
+.search-container .search-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-container .search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Table */
+.ad-table {
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.table-header {
+  background: #007bff;
+  color: white;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+
+.ad-table th,
+.ad-table td {
+  text-align: center;
+  padding: 20px;
+  vertical-align: middle;
+  font-size: 1rem;
+}
+
+.ad-table tbody tr {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  height: 60px;
+}
+
+.ad-table tbody tr:hover {
+  background-color: #f1f1f1;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Video Link */
+.video-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.video-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 15px;
+  font-size: 1rem;
+  border-radius: 50px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-archive {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-archive:hover {
+  background: #b02a37;
+  transform: translateY(-2px);
+}
+
+.btn-unarchive {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.btn-unarchive:hover {
+  background: #1e7e34;
+  transform: translateY(-2px);
+}
+
+/* Alerts */
+.alert {
+  margin-bottom: 15px;
+  border-radius: 5px;
+  padding: 10px 15px;
+  text-align: center;
+}
+
+/* Modal Styles */
+.custom-modal,
+.edit-modal,
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay,
+.edit-modal-overlay,
+.confirmation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content,
+.edit-modal-content,
+.confirmation-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
+/* Confirmation Dialog Buttons */
+.confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-confirm-danger {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-confirm-danger:hover {
+  background-color: #a71d2a;
+}
+
+.btn-confirm-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-confirm-secondary:hover {
+  background-color: #545b62;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination-container button {
+  padding: 5px 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagination-container button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-container span {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .ad-table th,
   .ad-table td {
-    text-align: center;
-    padding: 20px; /* Increased padding for more height */
-    vertical-align: middle;
-    font-size: 1rem; /* Font size adjustment for readability */
-  }
-  
-  /* Table Row Hover Effect */
-  .ad-table tbody tr {
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    height: 60px; /* Minimum row height */
-  }
-  
-  .ad-table tbody tr:hover {
-    background-color: #f1f1f1;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Adjust Video Link Column */
-  .video-link {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  .video-link:hover {
-    color: #0056b3;
-    text-decoration: underline;
-  }
-  
-  /* Buttons */
-  .btn {
-    padding: 8px 15px;
-    font-size: 1rem;
-    border-radius: 50px;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
-  
-  .btn-archive {
-    background: #dc3545;
-    color: white;
-    border: none;
-  }
-  
-  .btn-archive:hover {
-    background: #b02a37;
-    transform: translateY(-2px);
-  }
-  
-  .btn-unarchive {
-    background: #28a745;
-    color: white;
-    border: none;
-  }
-  
-  .btn-unarchive:hover {
-    background: #1e7e34;
-    transform: translateY(-2px);
-  }
-  
-  /* Responsive Adjustments for Table */
-  @media (max-width: 768px) {
-    .ad-table th,
-    .ad-table td {
-      padding: 10px; /* Reduced padding for smaller screens */
-      font-size: 0.9rem; /* Smaller font for compact view */
-    }
-  
-    .ad-list-container {
-      padding: 10px;
-    }
+    padding: 10px;
+    font-size: 0.9rem;
   }
 
-  /* Custom Modal */
+  .ad-list-container {
+    padding: 10px;
+  }
+}
+
+/* Enhanced Modal Styles */
 .custom-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  position: relative;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 800px;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modal-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.modal-close {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 35px;
+  height: 35px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  /* Modal Overlay */
-  .modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  /* Modal Content */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .modal-content {
-    position: relative;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 2;
-    text-align: center;
-    width: 70%; /* Reduce width for medium size */
-    max-width: 500px; /* Maximum width for medium size */
+    width: 95%;
+    padding: 1.5rem;
   }
   
   .modal-title {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
   }
-  
-  .modal-video {
-    width: 100%; /* Ensure video fits within the modal content */
-    height: auto; /* Maintain aspect ratio */
-    max-height: 400px; /* Prevent video from becoming too tall */
-    border-radius: 10px;
-  }
-  
-  /* Close Button */
-  .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-  }
-  
-  .modal-close:hover {
-    color: #000;
-  }
-  /* Confirmation Dialog */
-.confirmation-dialog {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .confirmation-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-  }
-  
-  .confirmation-content {
-    position: relative;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 2;
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-  }
-  
-  .confirmation-title {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-  }
-  
-  .confirmation-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .btn-confirm-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .btn-confirm-danger:hover {
-    background-color: #a71d2a;
-  }
-  
-  .btn-confirm-secondary {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .btn-confirm-secondary:hover {
-    background-color: #545b62;
-  }
-  
+}
 
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.5rem;
+}
 
-  /* Edit Modal */
-.edit-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .edit-modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-  }
-  
-  .edit-modal-content {
-    position: relative;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 2;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-  }
-  
-  .edit-modal .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-  
-  .edit-modal .modal-close:hover {
-    color: #000;
-  }
-  
-  /* Form Styling */
-  .edit-modal form {
-    text-align: left;
-  }
-  
-  .edit-modal .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .edit-modal .form-group label {
-    font-size: 1rem;
-    color: #333;
-    display: block;
-    margin-bottom: 5px;
-  }
-  
-  .edit-modal .form-group input,
-  .edit-modal .form-group textarea,
-  .edit-modal .form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-  
-  .edit-modal .form-group textarea {
-    resize: none;
-  }
-  
-  .edit-modal .form-group select {
-    appearance: none;
-    background: #fff;
-  }
-  
-  .edit-modal button[type="submit"] {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .edit-modal button[type="submit"]:hover {
-    background-color: #0056b3;
-  }
-  /* Container */
-.ad-list-container {
-    margin-top: 30px;
-    padding: 20px;
-    background: #f9f9f9;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Title */
-  .list-title {
-    font-size: 2rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  /* Search Bar */
-  .search-container .search-input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .search-container .search-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-  }
-  
-  /* Table */
-  .ad-table th, .ad-table td {
-    text-align: center;
-  }
-  
-  .ad-table tbody tr:hover {
-    background-color: #f1f1f1;
-  }
-  
-  /* Pagination */
-  .pagination-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    gap: 10px;
-  }
-  
-  .pagination-container button {
-    padding: 5px 10px;
-    font-size: 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .pagination-container button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  .pagination-container span {
-    font-size: 1rem;
-    font-weight: bold;
-  }
-  
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.file-upload-label {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-label:hover {
+  background: #e9ecef;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.upload-status {
+  margin-top: 1rem;
+}
+
+.upload-status small {
+  display: block;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.progress {
+  height: 1.5rem;
+  border-radius: 8px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  background-color: #007bff;
+  transition: width 0.2s ease;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-group .btn {
+  white-space: nowrap;
+}

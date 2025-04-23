@@ -13,6 +13,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { environment } from '../environnement/enivronement';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { ChangepwdComponent } from './changepwd/changepwd.component';
 
 const config: SocketIoConfig = {
   url: environment.baseUrl,
@@ -29,6 +30,8 @@ const config: SocketIoConfig = {
   declarations: [
     AppComponent,
     LoginComponent,
+    ChangepwdComponent
+
   ],
   imports: [
     BrowserModule,

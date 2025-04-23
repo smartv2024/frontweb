@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AdminService } from '../../admin.service';
+import { AuthService } from '../../../AuthService/auth.service';
 
 @Component({
   selector: 'app-archiv-ads',
@@ -8,11 +9,13 @@ import { AdminService } from '../../admin.service';
   templateUrl: './archiv-ads.component.html',
   styleUrl: './archiv-ads.component.css',
 })
-export class ArchivAdsComponent {
+export class ArchivAdsComponent implements OnInit {
   advertisements: any[] = [];
   filteredAds: any[] = [];
+  userRole: string = '';
+  userId: string = '';
   successMessage = '';
-  errorMessage = '';
+  errorMessage: string = '';
   selectedVideoUrl: string = '';
   isModalOpen: boolean = false;
   isConfirmDialogOpen: boolean = false;
@@ -21,26 +24,48 @@ export class ArchivAdsComponent {
   itemsPerPage: number = 5;
   searchTerm: string = '';
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private authService: AuthService
+  ) {
+    this.userRole = this.authService.userRole || 'user';
+    this.userId = this.authService.userId || '';
+  }
 
   ngOnInit() {
     this.loadAdvertisements();
   }
 
   loadAdvertisements() {
-    this.adminService.getAds().subscribe(
-      (data: any) => {
-        this.advertisements = (data.data || []).filter(
-          (ad: any) => ad.isDeleted === true
-        );
-        this.filteredAds = [...this.advertisements]; // Initialize filtered ads
-      },
-      (error) => {
-        console.error('Error fetching advertisements:', error);
-        this.errorMessage =
-          error.error?.message || 'Failed to load advertisements.';
-      }
-    );
+    if (this.userRole === 'admin') {
+      this.adminService.getAds().subscribe(
+        (data: any) => {
+          this.advertisements = (data.data || []).filter(
+            (ad: any) => ad.isDeleted === true
+          );
+          this.filteredAds = [...this.advertisements];
+        },
+        (error) => {
+          console.error('Error fetching advertisements:', error);
+          this.errorMessage =
+            error.error?.message || 'Failed to load advertisements.';
+        }
+      );
+    } else {
+      this.adminService.getAdvertisementsByUserId(this.userId).subscribe(
+        (data: any) => {
+          this.advertisements = (data.data || []).filter(
+            (ad: any) => ad.isDeleted === true
+          );
+          this.filteredAds = [...this.advertisements];
+        },
+        (error) => {
+          console.error('Error fetching advertisements:', error);
+          this.errorMessage =
+            error.error?.message || 'Failed to load advertisements.';
+        }
+      );
+    }
   }
 
   // Filter advertisements based on the search term

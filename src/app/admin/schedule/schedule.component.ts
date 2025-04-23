@@ -326,15 +326,13 @@ subscribeToDeviceUpdates(): void {
         console.log(response);
         this.schedules = response.data
           .filter((schedule: any) => schedule.deviceId && !schedule.deviceId.isDeleted)
-          .map((schedule: any) => {
-            return {
-              ...schedule,
-              advertisementIds: schedule.advertisementIds.filter(
-                (ad: { isDeleted: boolean }) => !ad.isDeleted
-              ),
-
-            };
-          });
+          .map((schedule: any) => ({
+            ...schedule,
+            advertisementIds: schedule.advertisementIds.filter(
+              (ad: { isDeleted: boolean }) => !ad.isDeleted
+            ),
+            videoLoaded: false // Initialize videoLoaded property
+          }));
 
         const devices = this.schedules
           .map((s) => s.deviceId?.deviceId)
@@ -501,5 +499,9 @@ public getPlaylistColor(schedule: any, deviceId: any): string {
     return 'dot-orange';
   }
   return 'dot-red';
+}
+
+onVideoLoaded(schedule: any): void {
+  schedule.videoLoaded = true;
 }
 }

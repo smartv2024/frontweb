@@ -1,87 +1,231 @@
-/* Add shadow to cards and style the video thumbnails */
+/* Main Container Styles */
+.container {
+  padding: 2rem;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Page Title */
+h2 {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  border-radius: 2px;
+}
+
+/* Card Styles */
 .card {
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    border-radius: 8px;
+  background: #ffffff;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-title {
+  color: #34495e;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Form Styles */
+.form-label {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  background-color: #ffffff;
+}
+
+/* List Group Styles */
+.list-group-item {
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: #e9ecef;
+  transform: translateX(5px);
+}
+
+/* Button Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  border: none;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #2980b9, #3498db);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* Alert Styles */
+.alert {
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: #3498db;
+}
+
+/* Section Headers */
+h4 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+h4::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, #3498db, transparent);
+}
+
+/* Device Info Card */
+.device-info {
+  background: linear-gradient(45deg, #f8f9fa, #ffffff);
+  border-left: 4px solid #3498db;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
   }
   
-  .card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .card {
+    margin-bottom: 1rem;
   }
   
-  .video-container {
-    max-width: 100%;
-    overflow: hidden;
-  }
-  
-  .video-thumbnail {
+  .btn {
     width: 100%;
-    max-height: 250px; /* Adjust size of the video */
-    object-fit: cover;
+    margin-bottom: 0.5rem;
   }
   
-  .form-container {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .form-control, .form-select {
+    font-size: 16px; /* Prevents zoom on mobile */
   }
-  
-  .form-container .form-label {
-    font-weight: 600;
-  }
-  
-  .form-container .form-control,
-  .form-container .form-select {
-    border-radius: 8px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .form-container .btn {
-    font-weight: bold;
-    border-radius: 8px;
-  }
-  
-  .selected-ads .ad-card {
-    display: inline-block;
-    width: 100%;
-    max-width: 350px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .selected-ads .ad-card:last-child {
-    margin-right: 0;
-  }
-  
-  h2, h4 {
-    font-weight: 700;
-    color: #333;
-  }
-  
-  .card-title {
-    font-size: 1.2rem;
-    font-weight: 500;
-  }
-  
-  .card-text {
-    font-size: 0.9rem;
-    color: #555;
-  }
-  
-  .text-primary {
-    color: #007bff;
-  }
-  
-  .mb-4, .mb-5 {
-    margin-bottom: 30px !important;
-  }
-  
-  .mt-5 {
-    margin-top: 50px;
-  }
-  
-  .w-100 {
-    width: 100% !important;
-  }
+}
+
+/* Custom DateTime Input Styling */
+input[type="datetime-local"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #f8f9fa;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  color: #2c3e50;
+}
+
+/* Schedule Settings Section */
+.schedule-settings {
+  background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+  border-radius: 15px;
+  padding: 2rem;
+}
+
+/* Selected Advertisements Section */
+.selected-ads {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.selected-ad-item {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.selected-ad-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
   
