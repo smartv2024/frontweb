@@ -1,43 +1,139 @@
 <div class="login-container">
+  <!-- Animated Text Layer -->
+  <div class="animated-text-container">
+    <div class="text-spawn text-spawn-1">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-2">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-3">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-4">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-5">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-6">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-7">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-8">AROMAMASTER</div>
+  </div>
+
+  <!-- Animated Shapes -->
+  <div class="shapes">
+    <!-- Large Background Shapes -->
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-6"></div>
+    <div class="shape shape-7"></div>
+    <div class="shape shape-8"></div>
+    <div class="shape shape-9"></div>
+    <div class="shape shape-10"></div>
+    
+    <!-- Medium Shapes -->
+    <div class="shape shape-11"></div>
+    <div class="shape shape-12"></div>
+    <div class="shape shape-13"></div>
+    <div class="shape shape-14"></div>
+    <div class="shape shape-15"></div>
+    
+    <!-- Small Floating Shapes -->
+    <div class="shape shape-small shape-16"></div>
+    <div class="shape shape-small shape-17"></div>
+    <div class="shape shape-small shape-18"></div>
+    <div class="shape shape-small shape-19"></div>
+    <div class="shape shape-small shape-20"></div>
+    
+    <!-- Tiny Particles -->
+    <div class="shape shape-tiny shape-21"></div>
+    <div class="shape shape-tiny shape-22"></div>
+    <div class="shape shape-tiny shape-23"></div>
+    <div class="shape shape-tiny shape-24"></div>
+    <div class="shape shape-tiny shape-25"></div>
+  </div>
+
+  <!-- Full-screen Video Background -->
+  <div class="video-background">
+    <iframe
+      src="https://www.youtube.com/embed/eZmT3Aj07lo?si=9_6W0XwVgM8sLb7h&autoplay=1&mute=1&loop=1&playlist=eZmT3Aj07lo&controls=0&showinfo=0&vq=hd1080&hd=1"
+      title="Background Video"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  </div>
+  
+  <!-- Centered Form -->
+  <div class="form-wrapper">
     <div class="form-container">
-      <h2>Login</h2>
-      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="https://iili.io/2gvDOlt.th.png" alt="Logo" class="logo">
+      </div>
+
+      <div class="form-header">
+        <h2>Welcome Back! 👋</h2>
+        <p class="subtitle">Sign in to continue to your account</p>
+      </div>
+      
+      <!-- Form Shapes -->
+      <div class="form-shapes">
+        <div class="form-shape form-shape-1"></div>
+        <div class="form-shape form-shape-2"></div>
+        <div class="form-shape form-shape-3"></div>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
         <!-- Error Message -->
-        <div *ngIf="errorMessage" class="error-message">
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          <i class="fas fa-exclamation-circle"></i>
           {{ errorMessage }}
         </div>
-  
+
         <!-- Email Field -->
         <div class="form-group">
-          <label for="email">Email:</label>
-          <input
-            id="email"
-            type="text"
-            class="form-control"
-            name="email"
-            [(ngModel)]="username"
-            required
-          />
+          <label for="email">User name</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-user"></i>
+            </span>
+            <input
+              id="email"
+              type="text"
+              class="form-control"
+              name="email"
+              [(ngModel)]="username"
+              placeholder="Enter your user name"
+              required
+              [ngClass]="{'is-invalid': loginForm.submitted && loginForm.form.get('email')?.invalid}"
+            />
+          </div>
         </div>
-  
+
         <!-- Password Field -->
         <div class="form-group">
-          <label for="password">Password:</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            class="form-control"
-            [(ngModel)]="password"
-            required
-          />
+          <label for="password">Password</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-lock"></i>
+            </span>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              class="form-control"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              required
+              [ngClass]="{'is-invalid': loginForm.submitted && loginForm.form.get('password')?.invalid}"
+            />
+          </div>
         </div>
-  
+
         <!-- Submit Button -->
         <button type="submit" class="btn-submit" [disabled]="!loginForm.form.valid || isLoading">
-          <span *ngIf="!isLoading">Login</span>
+          <span *ngIf="!isLoading">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+          </span>
           <div *ngIf="isLoading" class="spinner"></div>
         </button>
       </form>
     </div>
   </div>
+</div>

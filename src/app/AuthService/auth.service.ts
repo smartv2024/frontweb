@@ -77,7 +77,7 @@ export class AuthService {
   }
 
   get isAdmin(): boolean {
-    return this.userState.value.role === 'admin';
+    return this.userState.value.role === 'admin' ||this.userState.value.role === 'SUPERADMIN' ;
   }
 
   get forcePasswordChange(): boolean {

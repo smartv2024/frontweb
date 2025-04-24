@@ -225,7 +225,7 @@ export class AdminService {
 
   createSchedule(body: any): Observable<any> {
     return this.http.post(
-      `${environment.baseUrl}/api/schedules`,
+      `${environment.baseUrl}/api/schedules/`,
       body,
       this.getHeaders()
     );
