@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../environnement/enivronement';
 import { jwtDecode } from 'jwt-decode';
 
@@ -10,12 +10,14 @@ interface UserState {
   role: string | null;
   token: string | null;
   forcePasswordChange: boolean;
+  isActive: boolean;
 }
 
 interface JwtPayload {
   id: string;
   role: string;
   forcePasswordChange: boolean;
+  isActive: boolean;
   exp: number;
 }
 
@@ -27,7 +29,8 @@ export class AuthService {
     id: null,
     role: null,
     token: null,
-    forcePasswordChange: false
+    forcePasswordChange: false,
+    isActive: false
   });
 
   constructor(private http: HttpClient) {
@@ -43,7 +46,8 @@ export class AuthService {
           id: decoded.id,
           role: decoded.role,
           token,
-          forcePasswordChange: decoded.forcePasswordChange
+          forcePasswordChange: decoded.forcePasswordChange,
+          isActive: decoded.isActive
         });
       } catch (error) {
         this.logout();
@@ -80,6 +84,10 @@ export class AuthService {
     return this.userState.value.forcePasswordChange;
   }
 
+  get isActive(): boolean {
+    return this.userState.value.isActive;
+  }
+
   login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post(`${environment.baseUrl}/api/auth/login`, credentials)
       .pipe(
@@ -87,17 +95,31 @@ export class AuthService {
           if (response?.token) {
             const decoded = jwtDecode<JwtPayload>(response.token);
             
+            // Double check isActive status from token
+            if (!decoded.isActive) {
+              sessionStorage.clear();
+              throw new Error('Account is inactive');
+            }
+
             // Update state
             this.userState.next({
               id: decoded.id,
               role: decoded.role,
               token: response.token,
-              forcePasswordChange: decoded.forcePasswordChange
+              forcePasswordChange: decoded.forcePasswordChange,
+              isActive: decoded.isActive
             });
 
             // Store in sessionStorage for page refreshes
             sessionStorage.setItem('authToken', response.token);
           }
+        }),
+        catchError((error) => {
+          // Clear any existing auth data
+          this.logout();
+          
+          // Rethrow the error to be handled by the component
+          throw error;
         })
       );
   }
@@ -107,7 +129,8 @@ export class AuthService {
       id: null,
       role: null,
       token: null,
-      forcePasswordChange: false
+      forcePasswordChange: false,
+      isActive: false
     });
     sessionStorage.clear();
   }

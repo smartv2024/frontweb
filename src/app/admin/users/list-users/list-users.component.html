@@ -87,6 +87,16 @@
                     Reset Password
                   </button>
 
+                  <!-- Edit User -->
+                  <button 
+                    ngbDropdownItem 
+                    class="dropdown-item"
+                    (click)="openEditModal(user)"
+                  >
+                    <i class="fas fa-edit"></i>
+                    Edit User
+                  </button>
+
                   <div class="dropdown-divider"></div>
 
                   <!-- Role Change -->
@@ -129,3 +139,115 @@
     </button>
   </div>
 </div>
+
+<!-- Add this modal markup after the table -->
+<div class="modal" [class.show]="isEditModalOpen" [style.display]="isEditModalOpen ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-edit"></i> Edit User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #editForm="ngForm" (ngSubmit)="updateUser()">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                [(ngModel)]="editUserObject.username"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editEmail">Email</label>
+            <div class="input-wrapper">
+              <input
+                type="email"
+                id="editEmail"
+                name="email"
+                [(ngModel)]="editUserObject.email"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-envelope"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editPhone">Phone Number</label>
+            <div class="input-wrapper">
+              <input
+                type="tel"
+                id="editPhone"
+                name="phoneNumber"
+                [(ngModel)]="editUserObject.phoneNumber"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-phone"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editRole">Role</label>
+            <div class="input-wrapper">
+              <select
+                id="editRole"
+                name="role"
+                [(ngModel)]="editUserObject.role"
+                class="form-control"
+                required
+              >
+                <option *ngFor="let role of availableRoles" [value]="role">
+                  {{role | titlecase}}
+                </option>
+              </select>
+              <i class="fas fa-user-shield"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                id="editStatus"
+                name="isActive"
+                [(ngModel)]="editUserObject.isActive"
+                class="form-check-input"
+              >
+              <label class="form-check-label" for="editStatus">
+                Active Account
+              </label>
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="!editForm.form.valid || isSubmitting">
+              <i class="fas fa-save"></i>
+              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add backdrop when modal is open -->
+<div class="modal-backdrop fade show" *ngIf="isEditModalOpen"></div>

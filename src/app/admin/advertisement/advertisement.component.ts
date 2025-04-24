@@ -40,6 +40,10 @@ export class AdvertisementComponent implements OnInit {
   uploadProgress: number = 0;
   videoResolutionError: string = '';
 
+  activeTab: 'all' | 'my' = 'all';
+  allAdvertisements: any[] = [];
+  myAdvertisements: any[] = [];
+
   constructor(
     private adminService: AdminService,
     private router: Router,
@@ -47,28 +51,51 @@ export class AdvertisementComponent implements OnInit {
   ) {
     this.userRole = this.authService.userRole || 'user';
     this.userId = this.authService.userId || '';
+    // Set default active tab for non-admin users
+    if (this.userRole !== 'admin' && this.userRole !== 'SUPERADMIN') {
+      this.activeTab = 'my';
+    }
   }
 
   ngOnInit() {
     this.loadAdvertisements();
   }
 
+  switchTab(tab: 'all' | 'my') {
+    this.activeTab = tab;
+    this.currentPage = 1; // Reset pagination when switching tabs
+    this.searchTerm = ''; // Reset search when switching tabs
+    this.filterAdvertisements();
+  }
+
   loadAdvertisements() {
-    if (this.userRole === 'admin') {
+    if (this.userRole === 'admin' || this.userRole === 'SUPERADMIN') {
+      // Load all advertisements
       this.adminService.getAds().subscribe(
         (data: any) => {
-          this.advertisements = (data.data || []).filter((ad: any) => ad.isDeleted === false);
-          this.filteredAds = [...this.advertisements];
+          this.allAdvertisements = (data.data || []).filter((ad: any) => !ad.isDeleted);
+          
+          // Load user's own advertisements
+          this.adminService.getAdvertisementsByUserId(this.userId).subscribe(
+            (userData: any) => {
+              this.myAdvertisements = (userData.data || []).filter((ad: any) => !ad.isDeleted);
+              this.filterAdvertisements();
+            },
+            (error) => {
+              this.errorMessage = error.error?.message || 'Failed to load user advertisements.';
+            }
+          );
         },
         (error) => {
           this.errorMessage = error.error?.message || 'Failed to load advertisements.';
         }
       );
     } else {
+      // For regular users, only load their own advertisements
       this.adminService.getAdvertisementsByUserId(this.userId).subscribe(
         (data: any) => {
-          this.advertisements = (data.data || []).filter((ad: any) => ad.isDeleted === false);
-          this.filteredAds = [...this.advertisements];
+          this.myAdvertisements = (data.data || []).filter((ad: any) => !ad.isDeleted);
+          this.filterAdvertisements();
         },
         (error) => {
           this.errorMessage = error.error?.message || 'Failed to load advertisements.';
@@ -77,23 +104,28 @@ export class AdvertisementComponent implements OnInit {
     }
   }
 
-  filteredAdvertisements() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
+  filterAdvertisements() {
+    const sourceAds = this.activeTab === 'all' ? this.allAdvertisements : this.myAdvertisements;
     
-    if (!this.searchTerm.trim()) {
-      return this.filteredAds.slice(start, end);
+    if (!this.searchTerm) {
+      this.filteredAds = [...sourceAds];
+      return;
     }
 
     const searchTermLower = this.searchTerm.toLowerCase();
-    return this.filteredAds
-      .filter(ad => 
-        ad.name?.toLowerCase().includes(searchTermLower) ||
-        ad.description?.toLowerCase().includes(searchTermLower) ||
-        ad.userId?.username?.toLowerCase().includes(searchTermLower) ||
-        ad.userId?.email?.toLowerCase().includes(searchTermLower)
-      )
-      .slice(start, end);
+    this.filteredAds = sourceAds.filter(ad => 
+      ad.name.toLowerCase().includes(searchTermLower) ||
+      ad.description.toLowerCase().includes(searchTermLower) ||
+      (ad.userId?.username && ad.userId.username.toLowerCase().includes(searchTermLower)) ||
+      (ad.userId?.email && ad.userId.email.toLowerCase().includes(searchTermLower))
+    );
+  }
+
+  filteredAdvertisements() {
+    this.filterAdvertisements();
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredAds.slice(startIndex, endIndex);
   }
 
   paginatedAdvertisements() {

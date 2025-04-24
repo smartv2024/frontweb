@@ -18,6 +18,15 @@ export class ListUsersComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   availableRoles = ['client', 'admin'];
+  isEditModalOpen = false;
+  isSubmitting = false;
+  editUserObject: any = {
+    username: '',
+    email: '',
+    phoneNumber: '',
+    role: '',
+    isActive: true
+  };
 
   constructor(private adminService: AdminService, private router: Router) {}
 
@@ -139,5 +148,49 @@ export class ListUsersComponent implements OnInit {
         }
       );
     }
+  }
+
+  openEditModal(user: any) {
+    this.editUserObject = { ...user };
+    this.isEditModalOpen = true;
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+    this.editUserObject = {
+      username: '',
+      email: '',
+      phoneNumber: '',
+      role: '',
+      isActive: true
+    };
+    this.errorMessage = '';
+  }
+
+  updateUser() {
+    if (!this.editUserObject._id) {
+      this.errorMessage = 'Invalid user data';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+
+    this.adminService.updateUser(this.editUserObject._id, this.editUserObject)
+      .subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.closeEditModal();
+          this.loadUsers(); // Refresh the users list
+          this.successMessage = 'User updated successfully';
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          this.errorMessage = error.error?.message || 'Failed to update user';
+        }
+      });
   }
 }

@@ -28,6 +28,9 @@ export class DevicesComponent implements OnInit {
   userId!: string;
   filteredAds: any[] = [];
   userRole!: string ;
+  activeTab: string = 'all';
+  allDevices: any[] = [];
+  myDevices: any[] = [];
 
 constructor(
     private adminService: AdminService,
@@ -37,6 +40,8 @@ constructor(
   ) {
     this.userRole = this.authService.userRole || 'user';
     this.userId = this.authService.userId || '';
+    console.log('Constructor - User ID:', this.userId);
+    console.log('Constructor - User Role:', this.userRole);
   }
   ngOnInit() {
     this.route.params.subscribe(params => {
@@ -46,24 +51,58 @@ constructor(
 
   // Fetch devices with isDeleted = false
   loadDevices() {
-    this.adminService.getDevices().subscribe(
-      (data: any) => {
-        if (data && Array.isArray(data.data)) {
-          this.devices = data.data.filter(
-            (device: any) => device.isDeleted === false
+    if (this.userRole === 'admin' || this.userRole === 'SUPERADMIN') {
+      // Load all devices
+      this.adminService.getDevices().subscribe(
+        (data: any) => {
+          if (data && Array.isArray(data.data)) {
+            // Store all non-deleted devices
+            this.allDevices = data.data.filter(
+              (device: any) => device.isDeleted === false
+            );
             
-          );
-          this.filteredDevices = [...this.devices];
-          this.calculatePagination();
-        } else {
-          console.error('Unexpected response format:', data);
+            // Filter my devices - make sure to compare strings
+            this.myDevices = this.allDevices.filter(
+              (device: any) => device.userId?._id === this.userId || device.userId === this.userId
+            );
+            
+            console.log('All Devices:', this.allDevices);
+            console.log('My Devices:', this.myDevices);
+            console.log('Current User ID:', this.userId);
+            
+            // Set devices based on active tab
+            this.devices = this.activeTab === 'all' ? this.allDevices : this.myDevices;
+            this.filteredDevices = [...this.devices];
+            this.calculatePagination();
+          } else {
+            console.error('Unexpected response format:', data);
+          }
+        },
+        (error) => {
+          this.errorMessage =
+            error.error?.message || 'Failed to load devices. Please try again.';
         }
-      },
-      (error) => {
-        this.errorMessage =
-          error.error?.message || 'Failed to load devices. Please try again.';
-      }
-    );
+      );
+    } else {
+      // For regular users, only load their devices
+      this.adminService.getDevices().subscribe(
+        (data: any) => {
+          if (data && Array.isArray(data.data)) {
+            this.devices = data.data.filter(
+              (device: any) => device.isDeleted === false
+            );
+            this.myDevices = [...this.devices];
+            this.allDevices = [...this.devices];
+            this.filteredDevices = [...this.devices];
+            this.calculatePagination();
+          }
+        },
+        (error) => {
+          this.errorMessage =
+            error.error?.message || 'Failed to load devices. Please try again.';
+        }
+      );
+    }
   }
 
   unpairageDevice(deviceId: string) {
@@ -239,5 +278,15 @@ constructor(
         this.errorMessage = error.error?.message || 'Failed to delete device.';
       }
     );
+  }
+
+  switchTab(tab: string) {
+    this.activeTab = tab;
+    this.devices = tab === 'all' ? this.allDevices : this.myDevices;
+    this.filteredDevices = [...this.devices];
+    this.calculatePagination();
+    this.currentPage = 1;
+    console.log('Switched to tab:', tab);
+    console.log('Current devices:', this.devices);
   }
 }
