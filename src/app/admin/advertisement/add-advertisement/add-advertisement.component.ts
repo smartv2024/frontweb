@@ -27,6 +27,7 @@ export class AddAdvertisementComponent {
   errorMessage = '';
   videoResolutionError = '';
   youtubeUrl = '';
+  estimatedUploadTime: number | null = null; // new property to store seconds
 
   // New properties for video quality handling
   availableQualities: any[] = [];
@@ -61,9 +62,31 @@ export class AddAdvertisementComponent {
       }
       this.selectedFile = file;
       this.errorMessage = '';
+      this.measureUploadSpeedAndEstimateTime(file);
     }
   }
+  private async measureUploadSpeedAndEstimateTime(file: File) {
+    try {
+      const dummyData = new FormData();
+      dummyData.append('file', new Blob([new Uint8Array(100000)]));
 
+      const startTime = Date.now();
+      await this.adminService.uploadVideo(dummyData).toPromise();
+      const endTime = Date.now();
+
+      const durationSeconds = (endTime - startTime) / 1000;
+      const dummySizeBits = 100000 * 8;
+      const uploadSpeedBps = dummySizeBits / durationSeconds;
+
+      const fileSizeBits = file.size * 8;
+      const estimatedSeconds = fileSizeBits / uploadSpeedBps;
+
+      this.estimatedUploadTime = Math.round(estimatedSeconds);
+    } catch (error) {
+      console.error('Error estimating upload time:', error);
+      this.estimatedUploadTime = null;
+    }
+  }
   async processYoutubeUrl() {
     if (!this.youtubeUrl) {
       this.errorMessage = 'Please enter a YouTube URL';
@@ -154,7 +177,7 @@ export class AddAdvertisementComponent {
     this.uploadProgress = 0;
     this.successMessage = '';
     this.errorMessage = '';
-    
+
     const formData = new FormData();
 
     if (this.selectedFile) {
@@ -168,10 +191,9 @@ export class AddAdvertisementComponent {
         next: (response: any) => {
           if (response.progress !== undefined) {
             this.uploadProgress = response.progress;
-          } 
-          else if (response.success) {
+          } else if (response.success) {
             this.uploadedVideoUrl = response.data.fileInfo.url;
-            this.advertisementId = response.data.advertisementId; // Store the advertisementId
+            this.advertisementId = response.data.advertisementId;
             this.isVideoProcessed = true;
             this.successMessage = response.message || 'Video uploaded successfully!';
             this.isUploading = false;
@@ -194,6 +216,7 @@ export class AddAdvertisementComponent {
       this.uploadProgress = 0;
     }
   }
+
 
   async addAdvertisement() {
     if (!this.isVideoProcessed || !this.advertisementId) {

@@ -238,8 +238,26 @@ constructor(
     this.archivingDeviceId = '';
   }
 
-  // Open the schedule modal
-  openScheduleModal(device: any) {
+  isScheduleButtonDisabled(device: any): boolean {
+    // If user is admin/superadmin and device is not owned by them
+    if ((this.userRole === 'admin' || this.userRole === 'SUPERADMIN') && 
+        device.userId?._id !== this.userId) {
+      return true;
+    }
+    return false;
+  }
+
+  getScheduleButtonTooltip(device: any): string {
+    if (this.isScheduleButtonDisabled(device)) {
+      return "Only the device owner can create schedules";
+    }
+    return "";
+  }
+
+  openScheduleModal(device: any): void {
+    if (this.isScheduleButtonDisabled(device)) {
+      return;
+    }
     this.selectedDevice = device;
     this.loadAds();
     this.isScheduleModalOpen = true;

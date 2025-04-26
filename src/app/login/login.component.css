@@ -188,6 +188,7 @@
   height: 100%;
   z-index: 1;
   background: #000;
+  overflow: hidden;
 }
 
 .video-background::after {
@@ -199,8 +200,8 @@
   height: 100%;
   background: linear-gradient(
     45deg,
-    rgba(44, 62, 80, 0.7),    /* Dark slate with opacity */
-    rgba(52, 73, 94, 0.7)     /* Darker slate with opacity */
+    rgba(44, 62, 80, 0.7),
+    rgba(52, 73, 94, 0.7)
   );
   z-index: 2;
 }
@@ -210,10 +211,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100vw;
-  height: 100vh;
+  width: 177.77777778vh; /* 16:9 aspect ratio */
+  height: 56.25vw; /* 16:9 aspect ratio */
+  min-width: 100%;
+  min-height: 100%;
   pointer-events: none;
+  opacity: 1;
   object-fit: cover;
+  border: 0;
 }
 
 /* Form Wrapper */
