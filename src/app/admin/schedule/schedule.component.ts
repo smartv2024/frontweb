@@ -39,6 +39,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private blockAds: { [key: string]: boolean } = {};
   private intervalId: any;
 
+  // Add these properties to track timers for each device
+  private deviceNoResponseTimers: { [deviceId: string]: ReturnType<typeof setTimeout> } = {};
+  private deviceCounterIntervals: { [deviceId: string]: ReturnType<typeof setInterval> } = {};
+
   constructor(
     private adminService: AdminService,
     private router: Router,
@@ -64,10 +68,18 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy(): void {
+    // Clear all device-specific timers
+    Object.keys(this.deviceNoResponseTimers).forEach(deviceId => {
+      clearTimeout(this.deviceNoResponseTimers[deviceId]);
+    });
+    Object.keys(this.deviceCounterIntervals).forEach(deviceId => {
+      clearInterval(this.deviceCounterIntervals[deviceId]);
+    });
+
+    // Clear other subscriptions and timeouts
     this.subscriptions.forEach((sub) => sub.unsubscribe());
     Object.values(this.mismatchTimeouts).forEach((timeout) => clearTimeout(timeout));
     Object.values(this.sameIndexTimeouts).forEach((timeout) => clearTimeout(timeout));
-
   }
 
 
@@ -88,34 +100,40 @@ StateApp(): void {
     if (counterInterval) clearInterval(counterInterval);
 
     noResponseTimer = setTimeout(() => {
-      console.error('No response received for 5 minutes (AppStateWeb)');
+      console.error(`No response received for 5 minutes (AppStateWeb) for device: ${this.appState}`);
 
-      const updateState = {
+      // Get existing states or initialize empty object
+      const existingStates = JSON.parse(localStorage.getItem('appStateUpdateState') || '{}');
+      
+      // Update or add the state for current device
+      existingStates[this.appState] = {
         lastUpdateTime: new Date().toISOString(),
-        state: 'red',
-        deviceId: this.appState
+        state: 'red'
       };
-      localStorage.setItem('appStateUpdateState', JSON.stringify(updateState));
+
+      localStorage.setItem('appStateUpdateState', JSON.stringify(existingStates));
 
       this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === updateState.deviceId) {
-          const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-          const playlistColor = this.getPlaylistColor(schedule, schedule.deviceId.deviceId);
-
-          let logMessage: string;
-          if (appStateColor === 'dot-red' && schedule.instantData?.titleVideo) {
-            logMessage = 'App is in background and playlist is working';
-          } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
-            logMessage = 'ERROR: App is down, check the TV';
-          } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
-            logMessage = 'App is working but Playlist is Blocked, restart the playlist';
-          } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
-            logMessage = 'All Good!';
-          } else {
-            logMessage = 'No app state update for 5 minutes';
+        for (const schedule of this.schedules) {
+          if (schedule.deviceId.deviceId === this.appState) {
+            const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
+            const playlistColor = this.getPlaylistColor(schedule, schedule.deviceId.deviceId);
+        
+            let logMessage: string;
+            if (appStateColor === 'dot-red' && schedule.instantData?.titleVideo) {
+              logMessage = 'App is in background and playlist is working';
+            } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
+              logMessage = 'ERROR: App is down, check the TV';
+            } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
+              logMessage = 'App is working but Playlist is Blocked, restart the playlist';
+            } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
+              logMessage = 'All Good!';
+            } else {
+              logMessage = 'No app state update for 5 minutes';
+            }
+        
+            this.logState(schedule.deviceId.deviceId, logMessage);
           }
-
-          this.logState(schedule.deviceId.deviceId, logMessage);
         }
         return schedule;
       });
@@ -128,7 +146,7 @@ StateApp(): void {
 
     let remainingTime = INACTIVITY_TIMEOUT_APP / 1000;
     counterInterval = setInterval(() => {
-      console.log(`Time remaining (AppStateWeb): ${remainingTime} seconds`);
+      console.log(`App State Timer - Device ${this.appState}: ${remainingTime} seconds remaining`);
       remainingTime--;
       if (remainingTime < 0) clearInterval(counterInterval);
     }, 1000);
@@ -140,12 +158,16 @@ StateApp(): void {
     console.log(`Received AppStateWeb for device ${data.deviceId}:`, data);
     this.appState = data.state;
 
-    const updateState = {
+    // Get existing states or initialize empty object
+    const existingStates = JSON.parse(localStorage.getItem('appStateUpdateState') || '{}');
+    
+    // Update or add the state for current device
+    existingStates[data.deviceId] = {
       lastUpdateTime: new Date().toISOString(),
-      state: data.state === 'foreground' ? 'green' : 'red',
-      deviceId: data.deviceId,
+      state: data.state === 'foreground' ? 'green' : 'red'
     };
-    localStorage.setItem('appStateUpdateState', JSON.stringify(updateState));
+
+    localStorage.setItem('appStateUpdateState', JSON.stringify(existingStates));
 
     this.schedules = this.schedules.map((schedule) => {
       if (schedule.deviceId.deviceId === data.deviceId) {
@@ -182,25 +204,32 @@ subscribeToDeviceUpdates(): void {
     return;
   }
 
-  let noResponseTimer: ReturnType<typeof setTimeout>;
-  let counterInterval: ReturnType<typeof setInterval>;
+  const startTimerForDevice = (deviceId: string) => {
+    // Clear existing timers for this device if they exist
+    if (this.deviceNoResponseTimers[deviceId]) {
+      clearTimeout(this.deviceNoResponseTimers[deviceId]);
+    }
+    if (this.deviceCounterIntervals[deviceId]) {
+      clearInterval(this.deviceCounterIntervals[deviceId]);
+    }
 
-  const startTimer = () => {
-    if (noResponseTimer) clearTimeout(noResponseTimer);
-    if (counterInterval) clearInterval(counterInterval);
+    // Set new timeout for this device
+    this.deviceNoResponseTimers[deviceId] = setTimeout(() => {
+      console.error(`No response received for 2 minutes (Playlist) for device: ${deviceId}`);
 
-    noResponseTimer = setTimeout(() => {
-      console.error('No response received for 2 minutes');
+      // Get existing states
+      const existingStates = JSON.parse(localStorage.getItem('PlaylistUpdateState') || '{}');
+      
+      // Update state for the current device
+      existingStates[deviceId] = {
+        lastUpdateTime: new Date().toISOString(),
+        state: 'red'
+      };
 
-      const storedState = localStorage.getItem('PlaylistUpdateState');
-      let updateState = storedState ? JSON.parse(storedState) : {};
-      updateState.lastUpdateTime = new Date().toISOString();
-      updateState.state = 'red';
-      localStorage.setItem('PlaylistUpdateState', JSON.stringify(updateState));
+      localStorage.setItem('PlaylistUpdateState', JSON.stringify(existingStates));
 
       this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === updateState.deviceId) {
-          // Set instantData.index to null after 2 minutes of no updates
+        if (schedule.deviceId.deviceId === deviceId) {
           const updatedSchedule = {
             ...schedule,
             instantData: schedule.instantData
@@ -213,7 +242,7 @@ subscribeToDeviceUpdates(): void {
 
           let logMessage: string;
           if (appStateColor === 'dot-red' && updatedSchedule.instantData?.index === null) {
-            logMessage = 'ERROR: App is down, check the TV'; // Triggered after 2 min playlist timeout
+            logMessage = 'ERROR: App is down, check the TV';
           } else if (appStateColor === 'dot-red' && updatedSchedule.instantData?.titleVideo) {
             logMessage = 'App is in background and playlist is working';
           } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
@@ -235,39 +264,50 @@ subscribeToDeviceUpdates(): void {
       this.updatePagination();
       this.cdr.detectChanges();
 
-      clearInterval(counterInterval);
+      // Clear the counter interval
+      if (this.deviceCounterIntervals[deviceId]) {
+        clearInterval(this.deviceCounterIntervals[deviceId]);
+        delete this.deviceCounterIntervals[deviceId];
+      }
     }, INACTIVITY_TIMEOUT_AD);
 
+    // Set new counter interval for this device
     let remainingTime = INACTIVITY_TIMEOUT_AD / 1000;
-    counterInterval = setInterval(() => {
-      console.log(`Time remaining: ${remainingTime} seconds`);
+    this.deviceCounterIntervals[deviceId] = setInterval(() => {
+      console.log(`Playlist Timer - Device ${deviceId}: ${remainingTime} seconds remaining`);
       remainingTime--;
-      if (remainingTime < 0) clearInterval(counterInterval);
+      if (remainingTime < 0) {
+        clearInterval(this.deviceCounterIntervals[deviceId]);
+        delete this.deviceCounterIntervals[deviceId];
+      }
     }, 1000);
   };
 
-  const checkLastUpdateTime = () => {
-    const storedState = localStorage.getItem('PlaylistUpdateState');
-    if (storedState) {
-      const updateState = JSON.parse(storedState);
-      const lastUpdateTime = new Date(updateState.lastUpdateTime).getTime();
-      const currentTime = new Date().getTime();
-      const timeDifference = currentTime - lastUpdateTime;
-
-      if (timeDifference > INACTIVITY_TIMEOUT_AD) {
-        updateState.state = 'red';
-      } else {
-        updateState.state = 'orange';
-      }
-      localStorage.setItem('PlaylistUpdateState', JSON.stringify(updateState));
-    }
-  };
-
-  checkLastUpdateTime();
-  startTimer();
+  // Initialize timers for existing devices
+  const storedState = localStorage.getItem('PlaylistUpdateState');
+  if (storedState) {
+    const states = JSON.parse(storedState);
+    Object.keys(states).forEach(deviceId => {
+      startTimerForDevice(deviceId);
+    });
+  }
 
   this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
     console.log(`Received PLAAAYLISTT for device ${data.deviceId}:`, data);
+
+    // Get existing states
+    const existingStates = JSON.parse(localStorage.getItem('PlaylistUpdateState') || '{}');
+    
+    // Update state for the current device
+    existingStates[data.deviceId] = {
+      lastUpdateTime: new Date().toISOString(),
+      state: 'green'
+    };
+
+    localStorage.setItem('PlaylistUpdateState', JSON.stringify(existingStates));
+
+    // Reset timer for this specific device
+    startTimerForDevice(data.deviceId);
 
     this.schedules = this.schedules.map((schedule) => {
       if (schedule.deviceId.deviceId === data.deviceId) {
@@ -306,15 +346,7 @@ subscribeToDeviceUpdates(): void {
 
     this.updatePagination();
     this.cdr.detectChanges();
-
-    const updateState = {
-      lastUpdateTime: new Date().toISOString(),
-      state: 'green',
-      deviceId: data.deviceId,
-    };
-    localStorage.setItem('PlaylistUpdateState', JSON.stringify(updateState));
-
-    startTimer();
+    startTimerForDevice(data.deviceId);
   });
 }
 
@@ -446,27 +478,23 @@ subscribeToDeviceUpdates(): void {
 // Add this method to check the appState and return the appropriate color
 // Method to check the app state and return the appropriate color
 public getAppStateColor(appState: string, deviceId: string): string {
-  // Retrieve the stored state from localStorage
   const storedState = localStorage.getItem('appStateUpdateState');
   
   if (storedState) {
-    const updateState = JSON.parse(storedState);
-    const storedDeviceId = updateState.deviceId;
-    const storedColor = updateState.state; // 'green' or 'red' from localStorage
-
-    // Check if the deviceId matches the one stored in localStorage
-    if (deviceId === storedDeviceId) {
-      // Return the color based on the stored state
-      return storedColor === 'green' ? 'dot-green' : 'dot-red';
+    const states = JSON.parse(storedState);
+    const deviceState = states[deviceId];
+    
+    if (deviceState) {
+      return deviceState.state === 'green' ? 'dot-green' : 'dot-red';
     }
   }
 
-  // Default to 'dot-red' if no matching stored state is found
-  return 'dot-red';
+  // Default return if no state is found for the device
+  return 'dot-orange';
 }
 
 // Method to check the playlist status and return the appropriate color
-public getPlaylistColor(schedule: any, deviceId: any): string {
+public getPlaylistColor(schedule: any, deviceId: string): string {
   const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
   
   if (appStateColor === 'dot-red') {
@@ -475,12 +503,11 @@ public getPlaylistColor(schedule: any, deviceId: any): string {
 
   const storedState = localStorage.getItem('PlaylistUpdateState');
   if (storedState) {
-    const updateState = JSON.parse(storedState);
-    const storedDeviceId = updateState.deviceId;
-    const storedColor = updateState.state; // 'green', 'red', or 'orange'
-
-    if (schedule.deviceId.deviceId === storedDeviceId) {
-      switch (storedColor) {
+    const states = JSON.parse(storedState);
+    const deviceState = states[deviceId];
+    
+    if (deviceState) {
+      switch (deviceState.state) {
         case 'green':
           return 'dot-green';
         case 'red':
@@ -488,14 +515,14 @@ public getPlaylistColor(schedule: any, deviceId: any): string {
         case 'orange':
           return 'dot-orange';
         default:
-          return 'dot-orange'; // Fallback for unexpected values
+          return 'dot-orange';
       }
     }
   }
 
   if (schedule.instantData?.titleVideo && !schedule.instantData?.error) {
     return 'dot-green';
-  } else if (!schedule.instantData?.titleVideo ) {
+  } else if (!schedule.instantData?.titleVideo) {
     return 'dot-orange';
   }
   return 'dot-red';

@@ -172,20 +172,25 @@ export class AddAdvertisementComponent {
       this.errorMessage = 'Please select a file or enter YouTube URL';
       return;
     }
-
+  
     this.isUploading = true;
     this.uploadProgress = 0;
     this.successMessage = '';
     this.errorMessage = '';
-
+  
     const formData = new FormData();
-
+  
     if (this.selectedFile) {
-      formData.append('video', this.selectedFile);
+      const sanitizedFileName = this.sanitizeFileName(this.selectedFile.name);
+      const sanitizedFile = new File([this.selectedFile], sanitizedFileName, {
+        type: this.selectedFile.type,
+        lastModified: this.selectedFile.lastModified,
+      });
+      formData.append('video', sanitizedFile);
     } else if (this.youtubeUrl) {
       formData.append('youtubeUrl', this.youtubeUrl);
     }
-
+  
     try {
       this.adminService.uploadVideo(formData).subscribe({
         next: (response: any) => {
@@ -197,6 +202,8 @@ export class AddAdvertisementComponent {
             this.isVideoProcessed = true;
             this.successMessage = response.message || 'Video uploaded successfully!';
             this.isUploading = false;
+            this.selectedFile = null;
+            this.youtubeUrl = '';
           }
         },
         error: (error) => {
@@ -204,6 +211,7 @@ export class AddAdvertisementComponent {
           this.errorMessage = error.error?.message || 'Failed to process video. Please try again.';
           this.isUploading = false;
           this.uploadProgress = 0;
+          this.isVideoProcessed = false;
         },
         complete: () => {
           this.isUploading = false;
@@ -214,9 +222,27 @@ export class AddAdvertisementComponent {
       console.error('Upload error:', error);
       this.isUploading = false;
       this.uploadProgress = 0;
+      this.isVideoProcessed = false;
     }
   }
-
+  
+  // Helper function to generate a random alphanumeric string
+  generateRandomString(length: number = 5): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+  
+  // Helper function to sanitize filenames (now replaces (number) with random string)
+  sanitizeFileName(filename: string): string {
+    let sanitized = filename.replace(/\(\d+\)/g, () => this.generateRandomString());
+    sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_');
+    sanitized = sanitized.replace(/_+/g, '_');
+    return sanitized;
+  }
 
   async addAdvertisement() {
     if (!this.isVideoProcessed || !this.advertisementId) {
@@ -260,6 +286,8 @@ export class AddAdvertisementComponent {
     this.showQualitySelector = false;
     this.selectedQuality = null;
     this.videoInfo = null;
-    this.advertisementId = null; // Add this line to reset advertisementId
+    this.advertisementId = null;
+    this.isVideoProcessed = false; // Reset the video processed state
+    this.uploadProgress = 0;
   }
 }

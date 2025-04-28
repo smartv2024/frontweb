@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AdminService } from '../../admin.service';
+import { AuthService } from '../../../AuthService/auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -20,9 +21,15 @@ export class ProfileComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
   isSubmitting = false;
+  currentPassword: string = '';
+  newPassword: string = '';
+  confirmPassword: string = '';
+  isChangingPassword: boolean = false;
+  showPasswordForm: boolean = false;
 
   constructor(
     private adminService: AdminService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -55,17 +62,72 @@ export class ProfileComponent implements OnInit {
   }
 
   resetPassword() {
-    if (confirm('Are you sure you want to reset your password? A new password will be sent to your email.')) {
-      this.adminService.resetOwnAccount(this.userProfile.email).subscribe(
-        (response) => {
-          this.successMessage = 'Password reset successful. Please check your email for the new password.';
-          setTimeout(() => this.successMessage = '', 5000);
-        },
-        (error) => {
-          this.errorMessage = error.error?.message || 'Failed to reset password';
-          setTimeout(() => this.errorMessage = '', 5000);
-        }
-      );
+    if (!this.validatePasswordForm()) {
+      return;
+    }
+
+    this.isChangingPassword = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const userId = this.authService.userId!;
+    
+    this.authService.changePassword({
+      userId: userId,
+      currentPassword: this.currentPassword,
+      newPassword: this.newPassword
+    }).subscribe({
+      next: (response: any) => {
+        this.successMessage = 'Password changed successfully';
+        this.isChangingPassword = false;
+        this.showPasswordForm = false;
+        // Reset form
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmPassword = '';
+        
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 5000);
+      },
+      error: (error: { error: { message: string; }; }) => {
+        this.isChangingPassword = false;
+        this.errorMessage = error.error?.message || 'Failed to change password';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    });
+  }
+
+  validatePasswordForm(): boolean {
+    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+      this.errorMessage = 'All password fields are required';
+      return false;
+    }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.errorMessage = 'New password and confirmation do not match';
+      return false;
+    }
+
+    if (this.newPassword.length < 8) {
+      this.errorMessage = 'New password must be at least 8 characters long';
+      return false;
+    }
+
+    return true;
+  }
+
+  togglePasswordForm() {
+    this.showPasswordForm = !this.showPasswordForm;
+    if (!this.showPasswordForm) {
+      // Reset form when closing
+      this.currentPassword = '';
+      this.newPassword = '';
+      this.confirmPassword = '';
+      this.errorMessage = '';
+      this.successMessage = '';
     }
   }
 

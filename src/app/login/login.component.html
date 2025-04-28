@@ -126,6 +126,13 @@
           </div>
         </div>
 
+        <!-- Add Forgot Password Link -->
+        <div class="forgot-password-link">
+          <a href="javascript:void(0)" (click)="openForgotPasswordModal()">
+            <i class="fas fa-key"></i> Forgot Password?
+          </a>
+        </div>
+
         <!-- Submit Button -->
         <button type="submit" class="btn-submit" [disabled]="!loginForm.form.valid || isLoading">
           <span *ngIf="!isLoading">
@@ -135,6 +142,72 @@
           <div *ngIf="isLoading" class="spinner"></div>
         </button>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal" [class.show]="showForgotPasswordModal" *ngIf="showForgotPasswordModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="btn-close" (click)="closeForgotPasswordModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #forgotPasswordForm="ngForm" (ngSubmit)="onForgotPasswordSubmit()">
+          <!-- Success Message -->
+          <div *ngIf="forgotPasswordSuccess" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            {{ forgotPasswordSuccess }}
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="forgotPasswordError" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ forgotPasswordError }}
+          </div>
+
+          <div class="form-group">
+            <label for="resetEmail">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <input
+                id="resetEmail"
+                type="email"
+                class="form-control"
+                name="resetEmail"
+                [(ngModel)]="resetEmail"
+                required
+                email
+                [disabled]="isResetting"
+                placeholder="Enter your email address"
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              (click)="closeForgotPasswordModal()"
+              [disabled]="isResetting"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary" 
+              [disabled]="!forgotPasswordForm.form.valid || isResetting"
+            >
+              <span *ngIf="!isResetting">Reset Password</span>
+              <span *ngIf="isResetting" class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>

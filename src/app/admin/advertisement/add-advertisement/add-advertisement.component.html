@@ -69,9 +69,11 @@
           <button 
             class="btn btn-primary upload-btn" 
             (click)="uploadVideo()" 
-            [disabled]="isUploading || (!selectedFile && !youtubeUrl)">
+            [disabled]="isUploading || (!selectedFile && !youtubeUrl) || isVideoProcessed">
             <i class="fas" [ngClass]="isUploading ? 'fa-spinner fa-spin' : 'fa-upload'"></i>
-            <span class="ms-2">{{ isUploading ? 'Uploading...' : 'Upload Video' }}</span>
+            <span class="ms-2">
+              {{ isVideoProcessed ? 'Video Uploaded' : (isUploading ? 'Uploading...' : 'Upload Video') }}
+            </span>
           </button>
         </div>
 

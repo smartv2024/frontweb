@@ -228,9 +228,8 @@
             name="orientation"
             required
           >
-            <option *ngFor="let orientation of orientations" [value]="orientation">
-              {{ orientation | titlecase }}
-            </option>
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
           </select>
         </div>
 

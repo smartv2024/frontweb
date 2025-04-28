@@ -26,98 +26,96 @@
     {{ errorMessage }}
   </div>
 
-  <!-- Add success message display -->
+  <!-- Success Message -->
   <div *ngIf="successMessage" class="success-message">
     {{ successMessage }}
   </div>
 
-  <!-- Users Table -->
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone Number</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of getCurrentPageUsers()">
-          <td>{{ user.username }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.phoneNumber }}</td>
-          <td>
-            <span [class]="getRoleBadgeClass(user.role)">
-              {{ user.role | titlecase }}
-            </span>
-          </td>
-          <td>
-            <span class="badge" [class.bg-success]="user.isActive" [class.bg-danger]="!user.isActive">
-              {{ user.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </td>
-          <td>
-            <div class="action-dropdown">
-              <div ngbDropdown class="d-inline-block">
-                <button class="action-btn" id="actionDropdown" ngbDropdownToggle>
-                  <i class="fas fa-ellipsis-v"></i>
-                  Actions
+  <!-- Users Cards Grid -->
+  <div class="users-grid">
+    <div class="user-card" *ngFor="let user of getCurrentPageUsers()">
+      <div class="user-card-header">
+        <div class="user-status">
+          <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+            {{ user.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <div class="action-dropdown">
+          <div ngbDropdown class="d-inline-block">
+            <button class="action-btn" id="actionDropdown" ngbDropdownToggle>
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div ngbDropdownMenu aria-labelledby="actionDropdown" class="dropdown-menu">
+              <!-- Status Toggle -->
+              <button 
+                ngbDropdownItem 
+                [class]="'dropdown-item ' + (user.isActive ? 'deactivate' : 'activate')"
+                (click)="toggleUserStatus(user._id)"
+              >
+                <i class="fas" [class.fa-lock]="!user.isActive" [class.fa-unlock]="user.isActive"></i>
+                {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
+              </button>
+
+              <!-- Reset Password -->
+              <button 
+                ngbDropdownItem 
+                class="dropdown-item"
+                (click)="resetUserPassword(user._id, user.email)"
+              >
+                <i class="fas fa-key"></i>
+                Reset Password
+              </button>
+
+              <!-- Edit User -->
+              <button 
+                ngbDropdownItem 
+                class="dropdown-item"
+                (click)="openEditModal(user)"
+              >
+                <i class="fas fa-edit"></i>
+                Edit User
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Role Change -->
+              <ng-container *ngFor="let role of availableRoles">
+                <button 
+                  *ngIf="role !== user.role"
+                  ngbDropdownItem 
+                  class="dropdown-item"
+                  (click)="changeRole(user._id, role)"
+                >
+                  <i class="fas fa-user-shield"></i>
+                  Change Role to {{ role | titlecase }}
                 </button>
-                <div ngbDropdownMenu aria-labelledby="actionDropdown" class="dropdown-menu">
-                  <!-- Status Toggle -->
-                  <button 
-                    ngbDropdownItem 
-                    [class]="'dropdown-item ' + (user.isActive ? 'deactivate' : 'activate')"
-                    (click)="toggleUserStatus(user._id)"
-                  >
-                    <i class="fas" [class.fa-lock]="!user.isActive" [class.fa-unlock]="user.isActive"></i>
-                    {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
-                  </button>
-
-                  <!-- Reset Password -->
-                  <button 
-                    ngbDropdownItem 
-                    class="dropdown-item"
-                    (click)="resetUserPassword(user._id, user.email)"
-                  >
-                    <i class="fas fa-key"></i>
-                    Reset Password
-                  </button>
-
-                  <!-- Edit User -->
-                  <button 
-                    ngbDropdownItem 
-                    class="dropdown-item"
-                    (click)="openEditModal(user)"
-                  >
-                    <i class="fas fa-edit"></i>
-                    Edit User
-                  </button>
-
-                  <div class="dropdown-divider"></div>
-
-                  <!-- Role Change -->
-                  <ng-container *ngFor="let role of availableRoles">
-                    <button 
-                      *ngIf="role !== user.role"
-                      ngbDropdownItem 
-                      class="dropdown-item"
-                      (click)="changeRole(user._id, role)"
-                    >
-                      <i class="fas fa-user-shield"></i>
-                      Change Role to {{ role | titlecase }}
-                    </button>
-                  </ng-container>
-                </div>
-              </div>
+              </ng-container>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </div>
+      </div>
+      
+      <div class="user-card-content">
+        <div class="user-info">
+          <div class="info-item">
+            <i class="fas fa-user"></i>
+            <span>{{ user.username }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <span>{{ user.email }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <span>{{ user.phoneNumber }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-user-tag"></i>
+            <span [class]="getRoleBadgeClass(user.role)">{{ user.role | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Pagination Controls -->

@@ -107,10 +107,13 @@ export class AdminService {
   }
 
   updateAdComplex(id: string, formData: FormData): Observable<any> {
+    console.log(formData)
     return this.http.put(`${environment.baseUrl}/api/advertisements/${id}/updateAdsComplex`, formData);
   }
 
   updateAdSimple(id: string, data: any): Observable<any> {
+    console.log(data)
+
     return this.http.patch(`${environment.baseUrl}/api/advertisements/${id}/updateAdsSimple`, data);
   }
 

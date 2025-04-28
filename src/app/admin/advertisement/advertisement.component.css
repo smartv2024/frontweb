@@ -3,6 +3,8 @@
   min-height: 100vh;
   background: #f8fafc;
   padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Header Styles */
@@ -366,6 +368,41 @@
 }
 
 .file-upload-label:hover {
+  background: #cbd5e1;
+}
+
+/* Confirmation Dialog */
+.dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-secondary:hover {
   background: #cbd5e1;
 }
 

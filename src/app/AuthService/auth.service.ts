@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../environnement/enivronement';
 import { jwtDecode } from 'jwt-decode';
+import { SocketService } from '../services/socket.service';
 
 interface UserState {
   id: string | null;
@@ -133,6 +134,8 @@ export class AuthService {
       isActive: false
     });
     sessionStorage.clear();
+    localStorage.clear();
+    this
   }
 
   changePassword(credentials: { 
@@ -160,5 +163,9 @@ export class AuthService {
         }
       })
     );
+  }
+
+  resetPassword(email: string): Observable<any> {
+    return this.http.post(`${environment.baseUrl}/api/auth/reset-account`, { email });
   }
 }

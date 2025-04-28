@@ -23,7 +23,6 @@ export class AdvertisementComponent implements OnInit {
   isConfirmDialogOpen: boolean = false;
   archivingAdId: string = '';
   editAdvertisementObject: any = {}; // To store the advertisement being edited
-  orientations = ['portrait', 'landscape']; // Orientation options
 
   currentPage: number = 1;
   itemsPerPage: number = 5;
@@ -209,48 +208,48 @@ export class AdvertisementComponent implements OnInit {
       this.isUploading = false;
     }
   }
-
   async updateAdvertisement() {
     try {
       this.isUploading = true;
       this.errorMessage = '';
       this.successMessage = '';
-
-      // Check if video update is needed
+  
       const isVideoUpdate = (this.selectedVideoSource === 'local' && this.selectedFile) || 
-                          (this.selectedVideoSource === 'youtube' && this.youtubeUrl);
-
+                            (this.selectedVideoSource === 'youtube' && this.youtubeUrl);
+  
       if (isVideoUpdate) {
-        // Use complex update route when updating video
         const formData = new FormData();
-        formData.append('name', this.editAdvertisementObject.name);
-        formData.append('description', this.editAdvertisementObject.description);
-        formData.append('orientation', this.editAdvertisementObject.orientation);
-
+        formData.append('name', this.editAdvertisementObject.name || '');
+        formData.append('description', this.editAdvertisementObject.description || '');
+        formData.append('orientation', this.editAdvertisementObject.orientation || '');  // 🔥 Ensure it's set even if user didn't change it
+  
         if (this.selectedVideoSource === 'local' && this.selectedFile) {
           formData.append('video', this.selectedFile);
         } else if (this.selectedVideoSource === 'youtube' && this.youtubeUrl) {
           formData.append('youtubeUrl', this.youtubeUrl);
         }
-
+  
+        console.log('FormData content:');
+        formData.forEach((v, k) => console.log(`${k}: ${v}`));  // ➡️ Debug: see if orientation is sent
+  
         await this.adminService.updateAdComplex(
           this.editAdvertisementObject._id, 
           formData
         ).toPromise();
       } else {
-        // Use simple update route when only updating attributes
         const updateData = {
-          name: this.editAdvertisementObject.name,
-          description: this.editAdvertisementObject.description,
-          orientation: this.editAdvertisementObject.orientation
+          "name": this.editAdvertisementObject.name,
+          "description": this.editAdvertisementObject.description,
+          "orientation": this.editAdvertisementObject.orientation
         };
-
+        console.log('Simple update data:', updateData);
+  
         await this.adminService.updateAdSimple(
           this.editAdvertisementObject._id,
           updateData
         ).toPromise();
       }
-
+  
       this.successMessage = 'Advertisement updated successfully!';
       this.isEditModalOpen = false;
       this.loadAdvertisements();
@@ -261,6 +260,7 @@ export class AdvertisementComponent implements OnInit {
       this.isUploading = false;
     }
   }
+  
 
   confirmArchive(id: string) {
     this.archivingAdId = id;
