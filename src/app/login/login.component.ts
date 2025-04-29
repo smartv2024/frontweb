@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../AuthService/auth.service';
 
@@ -8,7 +8,30 @@ import { AuthService } from '../AuthService/auth.service';
   styleUrls: ['./login.component.css'],
   standalone:false
 })
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit {
+  @ViewChild('videoPlayer') videoPlayer!: ElementRef;
+  isMuted: boolean = true;
+
+  ngAfterViewInit() {
+    const video = this.videoPlayer.nativeElement;
+    video.defaultMuted = true;
+    video.muted = true;
+  
+    const playVideo = () => {
+      video.play().catch((error: any) => {
+        console.log("Video autoplay failed:", error);
+      });
+    };
+  
+    // Try autoplay
+    playVideo();
+  
+    // Retry on interaction if autoplay fails
+    document.addEventListener('click', playVideo, { once: true });
+    document.addEventListener('touchstart', playVideo, { once: true });
+  }
+  
+
   username = '';
   password = '';
   errorMessage = '';
@@ -88,4 +111,23 @@ export class LoginComponent {
       }
     });
   }
+  toggleSound() {
+    if (!this.videoPlayer) return;
+  
+    const video = this.videoPlayer.nativeElement;
+  
+    // Toggle mute state
+    this.isMuted = !this.isMuted;
+    video.muted = this.isMuted;
+  
+    video.play().catch((error: any) => {
+      console.error(this.isMuted ? 'Playback failed while muting:' : 'Unmute failed:', error);
+      // Optional: revert mute state if unmuting fails
+      if (!this.isMuted) {
+        this.isMuted = true;
+        video.muted = true;
+      }
+    });
+  }
+  
 }

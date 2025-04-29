@@ -121,7 +121,7 @@
 .form-container {
   position: relative;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(10, 7, 7, 0.1);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
@@ -418,7 +418,7 @@ label {
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(37, 34, 34, 0.3);
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 0.8s linear infinite;
@@ -591,7 +591,7 @@ label {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(44, 62, 80, 0.85);
+  background: rgba(15, 21, 27, 0.85);
   backdrop-filter: blur(8px);
   z-index: 1050;
   opacity: 0;
@@ -902,4 +902,42 @@ label {
     width: 100%;
     justify-content: center;
   }
+}
+
+.sound-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sound-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.sound-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.sound-toggle-btn.unmuted {
+  background: linear-gradient(45deg, #2c3e50, #34495e);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.sound-icon {
+  font-size: 1.2rem;
 }

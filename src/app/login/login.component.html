@@ -49,14 +49,17 @@
 
   <!-- Full-screen Video Background -->
   <div class="video-background">
-    <iframe
-      src="https://www.youtube.com/embed/eZmT3Aj07lo?si=9_6W0XwVgM8sLb7h&autoplay=1&mute=1&loop=1&playlist=eZmT3Aj07lo&controls=0&showinfo=0&vq=hd1080&hd=1&rel=0&modestbranding=1&iv_load_policy=3"
-      title="Background Video"
-      frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-      loading="lazy"
-    ></iframe>
+    <video
+      #videoPlayer
+      src="https://perfumatic-faicel.vercel.app/aroma-video.mp4"
+      autoplay
+      [muted]="isMuted"
+      loop
+      playsinline
+      preload="auto"
+      style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;"
+    ></video>
+   
   </div>
   
   <!-- Centered Form -->
