@@ -140,11 +140,13 @@ export class ProfileComponent implements OnInit {
   }
 
   updateProfile() {
+    const userId=this.authService.userId
     this.isSubmitting = true;
     this.successMessage = '';
     this.errorMessage = '';
 
     const updateData = {
+      userId,
       username: this.userProfile.name,
       email: this.userProfile.email,
       phoneNumber: this.userProfile.phoneNumber
