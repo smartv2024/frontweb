@@ -1,7 +1,8 @@
+/* Critical CSS - Minimal styles needed for initial render */
 :root {
-  --primary-color: #2c3e50;    /* Dark slate */
-  --secondary-color: #34495e;  /* Darker slate */
-  --accent-color: #ff6b6b;     /* Keeping the accent color */
+  --primary-color: #2c3e50;
+  --secondary-color: #34495e;
+  --accent-color: #ff6b6b;
 }
 
 .login-container {
@@ -11,7 +12,33 @@
   overflow: hidden;
 }
 
-/* Logo Styles */
+/* Form Wrapper - Critical for initial render */
+.form-wrapper {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Form Container - Critical for initial render */
+.form-container {
+  width: 100%;
+  max-width: 440px;
+  padding: 2.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  contain: content;
+}
+
+/* Logo Styles - Critical for initial render */
 .logo-container {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -189,6 +216,7 @@
   z-index: 1;
   background: #000;
   overflow: hidden;
+  contain: strict;
 }
 
 .video-background::after {
@@ -245,6 +273,7 @@
   overflow: hidden;
   backdrop-filter: blur(20px);
   border-radius: 20px;
+  contain: content;
 }
 
 .form-header {
@@ -422,6 +451,7 @@ label {
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 0.8s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spin {
@@ -454,6 +484,8 @@ label {
   user-select: none;
   opacity: 0;
   filter: blur(2px);
+  will-change: transform;
+  contain: layout style paint;
 }
 
 /* Individual text positioning and animations */
@@ -596,6 +628,7 @@ label {
   z-index: 1050;
   opacity: 0;
   transition: opacity 0.3s ease;
+  contain: content;
 }
 
 .modal.show {
@@ -940,4 +973,87 @@ label {
 
 .sound-icon {
   font-size: 1.2rem;
+}
+
+/* Performance optimizations for animations */
+@media (prefers-reduced-motion: reduce) {
+  .logo, .shape, .form-shape, .text-spawn {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Reduce the number of animated elements for better performance */
+.shape, .text-spawn {
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* Use hardware acceleration for animations */
+.shape, .text-spawn, .logo, .form-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize video background */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: #000;
+  overflow: hidden;
+  contain: strict;
+}
+
+.video-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(44, 62, 80, 0.7),
+    rgba(52, 73, 94, 0.7)
+  );
+  z-index: 2;
+}
+
+/* Optimize form container */
+.form-container {
+  contain: content;
+}
+
+/* Optimize modal rendering */
+.modal {
+  contain: content;
+}
+
+/* Reduce paint operations for hover effects */
+.btn-submit:hover::before {
+  will-change: transform;
+}
+
+/* Optimize loading spinner */
+.spinner {
+  will-change: transform;
+}
+
+/* Optimize sound toggle button */
+.sound-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  z-index: 1
 }
