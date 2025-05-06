@@ -40,8 +40,9 @@
             {{ user.isActive ? 'Active' : 'Inactive' }}
           </span>
         </div>
+        <!-- Action Dropdown -->
         <div class="action-dropdown">
-          <div ngbDropdown class="d-inline-block">
+          <div ngbDropdown class="d-inline-block" container="body">
             <button class="action-btn" id="actionDropdown" ngbDropdownToggle>
               <i class="fas fa-ellipsis-v"></i>
             </button>

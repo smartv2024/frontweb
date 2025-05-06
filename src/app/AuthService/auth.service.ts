@@ -164,8 +164,13 @@ export class AuthService {
       })
     );
   }
-
-  resetPassword(email: string): Observable<any> {
-    return this.http.post(`${environment.baseUrl}/api/auth/reset-account`, { email });
+  resetPassword(email: string) {
+    return this.http.post<any>(`${environment.baseUrl}/api/auth/reset-account`, { email }, { observe: 'response' })
+      .pipe(
+        map(response => ({
+          status: response.status,
+          message: response.body?.message
+        }))
+      );
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../AuthService/auth.service';
 import { Subject, fromEvent } from 'rxjs';
@@ -63,9 +63,12 @@ export class LoginComponent implements AfterViewInit, OnInit, OnDestroy {
   get forgotPasswordSuccess(): string { return this._forgotPasswordSuccess; }
   set forgotPasswordSuccess(value: string) { this._forgotPasswordSuccess = value; }
 
+  testRes: boolean = false;
+
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -100,7 +103,7 @@ export class LoginComponent implements AfterViewInit, OnInit, OnDestroy {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          video.preload = 'auto';
+          video.preload = 'auto'; 
           this.playVideoWithRetry();
           this.videoLoaded = true;
           observer.disconnect();
@@ -198,7 +201,15 @@ export class LoginComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   closeForgotPasswordModal() {
+    // Always allow closing the modal, even during a request
     this.showForgotPasswordModal = false;
+    
+    // If there's an ongoing request, we should cancel it
+    if (this.isResetting) {
+      // Reset the loading state
+      this.isResetting = false;
+    }
+    
     // Clean up resources
     setTimeout(() => {
       this.resetEmail = '';
@@ -206,25 +217,28 @@ export class LoginComponent implements AfterViewInit, OnInit, OnDestroy {
       this.forgotPasswordSuccess = '';
     }, 300); // After animation completes
   }
-
   onForgotPasswordSubmit() {
     if (!this.resetEmail || this.isResetting) return;
-
+  
     this.isResetting = true;
     this.forgotPasswordError = '';
     this.forgotPasswordSuccess = '';
-
+    this.testRes = false;
+  
     this.authService.resetPassword(this.resetEmail).subscribe({
       next: (response) => {
         this.isResetting = false;
-        this.forgotPasswordSuccess = 'Password reset email sent successfully. Please check your email.';
-        setTimeout(() => {
-          this.closeForgotPasswordModal();
-        }, 3000);
+        this.testRes = true;
+        this.forgotPasswordSuccess = response.message || 'Password reset email sent successfully';
+  
+        this.cdRef.markForCheck(); // ✅ force UI update
       },
       error: (error) => {
         this.isResetting = false;
+        this.testRes = false;
         this.forgotPasswordError = error.error?.message || 'Failed to reset password. Please try again.';
+  
+        this.cdRef.markForCheck(); // ✅ force UI update
       }
     });
   }

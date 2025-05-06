@@ -174,6 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 99; /* Ensure button is above card but below dropdown */
 }
 
 .action-btn:hover {
@@ -181,44 +183,107 @@
   color: #1a237e;
 }
 
-/* Action Dropdown Container */
+/* Action Dropdown Container - Improved z-index */
 .action-dropdown {
   position: relative;
-  z-index: 10;
+  z-index: 100; /* Increased z-index */
 }
 
-/* Dropdown Menu */
+/* Dropdown Menu - Enhanced styling with better shadow and background */
 .dropdown-menu {
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e3e8ef;
-  min-width: 200px; /* Set minimum width */
-  right: 0; /* Align to right */
-  left: auto !important; /* Override Bootstrap's left positioning */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border: none;
+  min-width: 220px;
+  right: 0;
+  left: auto !important;
   margin-top: 0.5rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  z-index: 1050 !important;
+  position: absolute !important;
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.2s ease;
 }
 
+/* Animation for dropdown appearance */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Dropdown items with enhanced styling */
 .dropdown-item {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   color: #37474f;
   font-size: 0.95rem;
+  font-weight: 500;
   transition: all 0.2s ease;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
+  z-index: 1051;
+  margin-bottom: 0.25rem;
+}
+
+.dropdown-item:last-child {
+  margin-bottom: 0;
 }
 
 .dropdown-item:hover {
-  background-color: #f5f7fa;
+  background-color: rgba(57, 73, 171, 0.1);
   color: #1a237e;
+  transform: translateX(2px);
 }
 
 .dropdown-item i {
   color: #3949ab;
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Dropdown divider */
+.dropdown-divider {
+  height: 1px;
+  background-color: #e3e8ef;
+  margin: 0.5rem 0;
+  opacity: 0.7;
+}
+
+/* Specific styles for activate/deactivate buttons */
+.dropdown-item.activate i {
+  color: #2e7d32;
+}
+
+.dropdown-item.deactivate i {
+  color: #c62828;
+}
+
+/* Overlay to ensure dropdown stands out */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 1040;
+  pointer-events: none;
+}
+
+/* Show backdrop when dropdown is open */
+.dropdown-menu.show + .dropdown-backdrop {
+  display: block;
 }
 
 /* Pagination Controls */
@@ -436,5 +501,29 @@
 
 .modal {
   z-index: 1050;
+}
+
+/* Ensure the dropdown container is properly positioned */
+.d-inline-block {
+  position: relative;
+}
+
+/* Fix for ngbDropdown to ensure proper stacking context */
+[ngbDropdown] {
+  position: static;
+}
+
+/* Ensure dropdown items are visible */
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #37474f;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+  z-index: 1051; /* Even higher z-index */
 }
 
