@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpEvent, HttpEventType } from '@angular/common/http';
 import { AuthService } from '../AuthService/auth.service';
 import { environment } from '../../environnement/enivronement';
-import { filter, map, Observable } from 'rxjs';
+import { filter, map, Observable, Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { VideoDownloadService } from '../services/video-download.service';
 import { PLATFORM_ID } from '@angular/core';
@@ -41,7 +41,7 @@ export class AdminService {
 
   addAds(body: any): Observable<any> {
     return this.http.post(
-      `${environment.baseUrl}/api/advertisements`,
+      `${environment.baseUrl}/api/cloudinary-advertisements`,
       body,
       this.getHeaders()
     );
@@ -49,21 +49,21 @@ export class AdminService {
 
   getAds(): Observable<any> {
     return this.http.get(
-      `${environment.baseUrl}/api/advertisements`,
+      `${environment.baseUrl}/api/cloudinary-advertisements`,
       this.getHeaders()
     );
   }
 
   getAdsById(id: any): Observable<any> {
     return this.http.get(
-      `${environment.baseUrl}/api/advertisements/${id}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}`,
       this.getHeaders()
     );
   }
 
   updateAd(id: string, body: any): Observable<any> {
     return this.http.put(
-      `${environment.baseUrl}/api/advertisements/${id}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}`,
       body,
       this.getHeaders()
     );
@@ -71,28 +71,28 @@ export class AdminService {
 
   archiveAds(id: any): Observable<any> {
     return this.http.delete(
-      `${environment.baseUrl}/api/advertisements/${id}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}`,
       this.getHeaders()
     );
   }
 
   unarchiveAds(id: any): Observable<any> {
     return this.http.delete(
-      `${environment.baseUrl}/api/advertisements/undelete/${id}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/undelete/${id}`,
       this.getHeaders()
     );
   }
 
   deleteAdById(id: any): Observable<any> {
     return this.http.delete(
-      `${environment.baseUrl}/api/advertisements/${id}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}`,
       this.getHeaders()
     );
   }
 
   updateAdvertisementSimple(id: string, data: { name: string, description: string, orientation: string }): Observable<any> {
     return this.http.patch(
-      `${environment.baseUrl}/api/advertisements/${id}/updateAdsSimple`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}/updateAdsSimple`,
       data,
       this.getHeaders()
     );
@@ -100,7 +100,7 @@ export class AdminService {
 
   updateAdvertisementComplex(id: string, formData: FormData): Observable<any> {
     return this.http.put(
-      `${environment.baseUrl}/api/advertisements/${id}/updateAdsComplex`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}/updateAdsComplex`,
       formData,
       this.getHeaders()
     );
@@ -108,18 +108,18 @@ export class AdminService {
 
   updateAdComplex(id: string, formData: FormData): Observable<any> {
     console.log(formData)
-    return this.http.put(`${environment.baseUrl}/api/advertisements/${id}/updateAdsComplex`, formData);
+    return this.http.put(`${environment.baseUrl}/api/cloudinary-advertisements/${id}/updateAdsComplex`, formData);
   }
 
   updateAdSimple(id: string, data: any): Observable<any> {
     console.log(data)
 
-    return this.http.patch(`${environment.baseUrl}/api/advertisements/${id}/updateAdsSimple`, data);
+    return this.http.patch(`${environment.baseUrl}/api/cloudinary-advertisements/${id}/updateAdsSimple`, data);
   }
 
   completeAdvertisementCreation(id: string, data: any): Observable<any> {
     return this.http.post(
-      `${environment.baseUrl}/api/advertisements/${id}/completeCreation`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${id}/completeCreation`,
       data,
       this.getHeaders()
     );
@@ -127,14 +127,14 @@ export class AdminService {
 
   getAdvertisementsByUserId(userId: string): Observable<any> {
     return this.http.get(
-      `${environment.baseUrl}/api/advertisements/getAdvertisementsByuser/${userId}`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/getAdvertisementsByuser/${userId}`,
       this.getHeaders()
     );
   }
 
   completeAdvertisement(advertisementId: string, advertisementData: any): Observable<any> {
     return this.http.post<any>(
-      `${environment.baseUrl}/api/advertisements/${advertisementId}/completeCreation`,
+      `${environment.baseUrl}/api/cloudinary-advertisements/${advertisementId}/completeCreation`,
       advertisementData
     );
   }
@@ -377,25 +377,91 @@ export class AdminService {
   }
 
   uploadVideo(formData: FormData): Observable<any> {
-    return this.http.post<any>(
-      `${environment.baseUrl}/api/files/upload`,
-      formData,
-      {
-        reportProgress: true,
-        observe: 'events'
+    const progressSubject = new Subject<any>();
+    
+    // Get the authentication token
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+      progressSubject.error({ success: false, message: 'Authentication token not found' });
+      return progressSubject.asObservable();
+    }
+    
+    // Create a new XMLHttpRequest for the form data upload
+    const xhr = new XMLHttpRequest();
+    
+    // Open a POST request to the upload endpoint
+    xhr.open('POST', `${environment.baseUrl}/api/cloudinary-advertisements/upload-with-progress`, true);
+    
+    // Set the authorization header
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    
+    // Set up progress tracking
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const progress = Math.round(100 * (event.loaded / event.total));
+        progressSubject.next({
+          progress: progress,
+          bytesUploaded: event.loaded,
+          totalBytes: event.total
+        });
       }
-    ).pipe(
-      map(event => {
-        if (event.type === HttpEventType.UploadProgress) {
-          const progress = Math.round(100 * (event.loaded / (event.total || event.loaded)));
-          return { progress };
-        } else if (event.type === HttpEventType.Response) {
-          return event.body; // This will contain your success response
+    };
+    
+    // Handle XHR response
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          progressSubject.next({
+            ...response,
+            progress: 100
+          });
+          progressSubject.complete();
+        } catch (error) {
+          progressSubject.error({ 
+            success: false, 
+            message: 'Failed to parse server response'
+          });
         }
-        return null;
-      }),
-      filter(event => event !== null)
-    );
+      } else {
+        // Handle HTTP error
+        let errorMessage = 'Upload failed';
+        
+        try {
+          const response = JSON.parse(xhr.responseText);
+          errorMessage = response.message || errorMessage;
+        } catch (e) {
+          // If we can't parse the response, use the status text
+          errorMessage = `Upload failed with status ${xhr.status}: ${xhr.statusText}`;
+        }
+        
+        progressSubject.error({ 
+          success: false, 
+          message: errorMessage
+        });
+      }
+    };
+    
+    // Handle XHR errors
+    xhr.onerror = () => {
+      progressSubject.error({ 
+        success: false, 
+        message: 'Network error during upload'
+      });
+    };
+    
+    // Handle XHR abort
+    xhr.onabort = () => {
+      progressSubject.error({ 
+        success: false, 
+        message: 'Upload aborted'
+      });
+    };
+    
+    // Send the form data
+    xhr.send(formData);
+    
+    return progressSubject.asObservable();
   }
 
   processYoutubeVideo(url: string): Observable<{ videoUrl: string }> {
@@ -427,6 +493,11 @@ export class AdminService {
       formData.append('youtubeUrl', content);
     }
     return this.http.put(`${environment.baseUrl}/api/files/${fileId}/content`, formData);
+  }
+
+  // Helper method to generate a unique upload ID
+  private generateUploadId(): string {
+    return 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
 }
