@@ -15,10 +15,12 @@ const INACTIVITY_TIMEOUT_AD = 120000; // 2 minutes
 export class ScheduleComponent implements OnInit, OnDestroy {
   schedules: any[] = [];
   paginatedSchedules: any[] = [];
+  filteredSchedules: any[] = [];
+  searchTerm: string = '';
   loading: boolean = false;
   error: string = '';
   pageIndex = 0;
-  pageSize = 5;
+  pageSize = 10;
   totalPages = 0;
   private deviceUpdateSubscription!: Subscription;
 
@@ -371,6 +373,7 @@ subscribeToDeviceUpdates(): void {
           .filter((id) => !!id);
         this.socketService.emit('checkStates', { devices });
 
+        this.filteredSchedules = [...this.schedules]; // Initialize filtered schedules
         this.loading = false;
         this.updatePagination();
       },
@@ -378,7 +381,7 @@ subscribeToDeviceUpdates(): void {
         this.error = error.error?.message || 'Error loading schedules';
         this.loading = false;
       },
-    })
+    });
   }
 
   SecondLoad() {
@@ -456,10 +459,10 @@ subscribeToDeviceUpdates(): void {
   }
 
   updatePagination(): void {
-    this.totalPages = Math.ceil(this.schedules.length / this.pageSize);
+    this.totalPages = Math.ceil(this.filteredSchedules.length / this.pageSize);
     const start = this.pageIndex * this.pageSize;
     const end = start + this.pageSize;
-    this.paginatedSchedules = this.schedules.slice(start, end);
+    this.paginatedSchedules = this.filteredSchedules.slice(start, end);
   }
 
   nextPage(): void {
@@ -475,60 +478,75 @@ subscribeToDeviceUpdates(): void {
       this.updatePagination();
     }
   }
-// Add this method to check the appState and return the appropriate color
-// Method to check the app state and return the appropriate color
-public getAppStateColor(appState: string, deviceId: string): string {
-  const storedState = localStorage.getItem('appStateUpdateState');
-  
-  if (storedState) {
-    const states = JSON.parse(storedState);
-    const deviceState = states[deviceId];
-    
-    if (deviceState) {
-      return deviceState.state === 'green' ? 'dot-green' : 'dot-red';
+
+  filterSchedules(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredSchedules = [...this.schedules];
+    } else {
+      const term = this.searchTerm.toLowerCase().trim();
+      this.filteredSchedules = this.schedules.filter(schedule => 
+        schedule.deviceId?.name?.toLowerCase().includes(term) ||
+        schedule.instantData?.titleVideo?.toLowerCase().includes(term) ||
+        schedule.deviceId?.deviceId?.toLowerCase().includes(term)
+      );
     }
+    this.pageIndex = 0; // Reset to first page when filtering
+    this.updatePagination();
   }
 
-  // Default return if no state is found for the device
-  return 'dot-orange';
-}
+  // Method to check the app state and return the appropriate color
+  public getAppStateColor(appState: string, deviceId: string): string {
+    const storedState = localStorage.getItem('appStateUpdateState');
+    
+    if (storedState) {
+      const states = JSON.parse(storedState);
+      const deviceState = states[deviceId];
+      
+      if (deviceState) {
+        return deviceState.state === 'green' ? 'dot-green' : 'dot-red';
+      }
+    }
 
-// Method to check the playlist status and return the appropriate color
-public getPlaylistColor(schedule: any, deviceId: string): string {
-  const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-  
-  if (appStateColor === 'dot-red') {
+    // Default return if no state is found for the device
+    return 'dot-orange';
+  }
+
+  // Method to check the playlist status and return the appropriate color
+  public getPlaylistColor(schedule: any, deviceId: string): string {
+    const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
+    
+    if (appStateColor === 'dot-red') {
+      return 'dot-red';
+    }
+
+    const storedState = localStorage.getItem('PlaylistUpdateState');
+    if (storedState) {
+      const states = JSON.parse(storedState);
+      const deviceState = states[deviceId];
+      
+      if (deviceState) {
+        switch (deviceState.state) {
+          case 'green':
+            return 'dot-green';
+          case 'red':
+            return 'dot-red';
+          case 'orange':
+            return 'dot-orange';
+          default:
+            return 'dot-orange';
+        }
+      }
+    }
+
+    if (schedule.instantData?.titleVideo && !schedule.instantData?.error) {
+      return 'dot-green';
+    } else if (!schedule.instantData?.titleVideo) {
+      return 'dot-orange';
+    }
     return 'dot-red';
   }
 
-  const storedState = localStorage.getItem('PlaylistUpdateState');
-  if (storedState) {
-    const states = JSON.parse(storedState);
-    const deviceState = states[deviceId];
-    
-    if (deviceState) {
-      switch (deviceState.state) {
-        case 'green':
-          return 'dot-green';
-        case 'red':
-          return 'dot-red';
-        case 'orange':
-          return 'dot-orange';
-        default:
-          return 'dot-orange';
-      }
-    }
+  onVideoLoaded(schedule: any): void {
+    schedule.videoLoaded = true;
   }
-
-  if (schedule.instantData?.titleVideo && !schedule.instantData?.error) {
-    return 'dot-green';
-  } else if (!schedule.instantData?.titleVideo) {
-    return 'dot-orange';
-  }
-  return 'dot-red';
-}
-
-onVideoLoaded(schedule: any): void {
-  schedule.videoLoaded = true;
-}
 }

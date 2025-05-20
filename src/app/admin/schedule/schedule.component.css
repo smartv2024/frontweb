@@ -16,23 +16,27 @@
 }
 
 /* Column Width Adjustments */
-.table thead th:nth-child(1) { /* Device Name */
-  width: 22%;
+.table thead th:nth-child(1) { /* Index # */
+  width: 5%;
 }
 
-.table thead th:nth-child(2) { /* Advertisements */
-  width: 15%;
-}
-
-.table thead th:nth-child(3) { /* Current Ads */
+.table thead th:nth-child(2) { /* Device Name */
   width: 20%;
 }
 
-.table thead th:nth-child(4) { /* God's Eye */
-  width: 28%;
+.table thead th:nth-child(3) { /* Advertisements */
+  width: 15%;
 }
 
-.table thead th:nth-child(5) { /* Actions */
+.table thead th:nth-child(4) { /* Current Ads */
+  width: 18%;
+}
+
+.table thead th:nth-child(5) { /* God's Eye */
+  width: 27%;
+}
+
+.table thead th:nth-child(6) { /* Actions */
   width: 15%;
 }
 
