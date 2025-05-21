@@ -25,7 +25,7 @@ export class AdvertisementComponent implements OnInit {
   editAdvertisementObject: any = {}; // To store the advertisement being edited
 
   currentPage: number = 1;
-  itemsPerPage: number = 10;
+  itemsPerPage: number = 12;
   filteredAds: any[] = [];
   userRole!: string ;
   userId!: string ;

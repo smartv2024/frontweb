@@ -15,7 +15,7 @@ export class DevicesComponent implements OnInit {
   ads: any[] = []; // To store advertisements for scheduling
   searchTerm: string = ''; // Search term for filtering
   currentPage: number = 1; // Current page for pagination
-  itemsPerPage: number = 10; // Number of items to display per page
+  itemsPerPage: number = 12; // Number of items to display per page
   totalPages: number = 0; // Total number of pages
   errorMessage: string = ''; // Error message for fetching devices
   editDeviceObject: any = {}; // To store the selected device for editing
