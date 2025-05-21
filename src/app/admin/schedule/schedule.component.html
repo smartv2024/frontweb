@@ -1,41 +1,22 @@
 <div class=" mt-4">
   <!-- Header Section -->
-  <div class="d-flex justify-content-between align-items-center mb-4 container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Schedule List</h2>
-    <div class="d-flex">
-      <button class="btn btn-primary me-2" routerLink="/admin/Devices">
-        Create New Schedule from Device
-      </button>
-      <a class="btn btn-warning" href="https://cloud.perfumatic.es/login">
-        Perfumatic
-      </a>
-    </div>
-  </div>
+    <button class="btn btn-primary" routerLink="/admin/Devices">
+      Create New Schedule from Device
+    </button>
 
-  <!-- Search Section -->
-  <div class="row mb-3 container">
-    <div class="col-md-6">
-      <div class="input-group">
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Search schedules..."
-          [(ngModel)]="searchTerm"
-          (input)="filterSchedules()"
-        />
-        <span class="input-group-text">
-          <i class="fas fa-search"></i>
-        </span>
-      </div>
-    </div>
+    
+    <a class="btn btn-warning" href="https://cloud.perfumatic.es/login">
+      Perfumatic
+    </a>
   </div>
 
   <!-- Table Section -->
-  <div class="table-responsive p-3 m-3">
+  <div class="table-responsive">
     <table class="table table-striped table-bordered table-hover">
       <thead class="thead-dark">
         <tr>
-          <th>#</th>
           <th>Device Name</th>
           <th>Advertisements</th>
           <th>Current Ads</th>
@@ -44,8 +25,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let schedule of paginatedSchedules; let i = index">
-          <td>{{ pageIndex * pageSize + i + 1 }}</td>
+        <tr *ngFor="let schedule of paginatedSchedules">
           <td>{{ schedule.deviceId.name }}</td>
           <td>{{ schedule.advertisementIds.length }} ads</td>
           <td>{{ schedule.instantData?.titleVideo || 'Waiting for data...' }}</td>
