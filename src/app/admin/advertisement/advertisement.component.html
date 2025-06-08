@@ -51,9 +51,6 @@
             <button class="action-btn edit" (click)="openEditModal(ad)">
               <i class="fas fa-edit"></i>
             </button>
-           <!--  <button class="action-btn archive" (click)="confirmArchive(ad._id)" *ngIf="!ad.archived">
-              <i class="fas fa-archive"></i>
-            </button> -->
             <button class="action-btn delete" (click)="deleteAdvertisement(ad._id)">
               <i class="fas fa-trash-alt"></i>
             </button>
@@ -62,34 +59,10 @@
 
         <div class="ad-card-content">
           <h3 class="ad-name">{{ad.name}}</h3>
-          
-          <div class="ad-info">
-            <div class="info-group" *ngIf="(userRole === 'admin' || userRole === 'SUPERADMIN') && activeTab === 'all'">
-              <label>Created By</label>
-              <p>{{ad.userId?.username || 'N/A'}}</p>
-              <span class="user-email">{{ad.userId?.email || 'N/A'}}</span>
-            </div>
-
-            <div class="info-group">
-              <label>Description</label>
-              <p>{{ad.description}}</p>
-            </div>
-
-            <div class="info-row">
-              <div class="info-group">
-                <label>Orientation</label>
-                <span class="orientation-badge">{{ad.orientation | titlecase}}</span>
-              </div>
-
-              <div class="info-group">
-                <label>Video</label>
-                <button class="video-preview-btn" (click)="openModal(ad.videoUrl)">
-                  <i class="fas fa-play-circle"></i>
-                  <span>Preview</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <button class="view-details-btn" (click)="openDetailsModal(ad)">
+            <i class="fas fa-info-circle"></i>
+            <span>View Details</span>
+          </button>
         </div>
       </div>
     </div>
@@ -294,4 +267,74 @@
       </div>
     </div>
   </div>
+
+  <!-- Enhanced Details Modal -->
+  <div class="custom-modal" *ngIf="isDetailsModalOpen">
+    <div class="modal-overlay" (click)="closeDetailsModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" (click)="closeDetailsModal()">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="modal-title">Advertisement Details</h2>
+      
+      <div class="details-content" *ngIf="selectedAd">
+        <div class="detail-group">
+          <label><i class="fas fa-tag"></i> Name</label>
+          <p>{{selectedAd.name}}</p>
+        </div>
+        
+        <div class="detail-group" *ngIf="(userRole === 'admin' || userRole === 'SUPERADMIN') && activeTab === 'all'">
+          <label><i class="fas fa-user"></i> Created By</label>
+          <div class="user-info">
+            <div class="user-avatar">
+              {{selectedAd.userId?.username?.charAt(0) || 'U'}}
+            </div>
+            <div class="user-details">
+              <span class="user-name">{{selectedAd.userId?.username || 'N/A'}}</span>
+              <span class="user-email">{{selectedAd.userId?.email || 'N/A'}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-group">
+          <label><i class="fas fa-align-left"></i> Description</label>
+          <p>{{selectedAd.description || 'No description provided'}}</p>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-group">
+            <label><i class="fas fa-calendar-alt"></i> Created On</label>
+            <p>{{selectedAd.createdAt | date:'medium'}}</p>
+          </div>
+          
+          <div class="detail-group">
+            <label><i class="fas fa-mobile-alt"></i> Orientation</label>
+            <span class="orientation-badge">
+              <i class="fas" [ngClass]="selectedAd.orientation === 'portrait' ? 'fa-mobile-alt' : 'fa-tablet-alt'"></i>
+              {{selectedAd.orientation | titlecase}}
+            </span>
+          </div>
+        </div>
+        <br>
+       
+       
+      </div> <div class="detail-group">
+          <label><i class="fas fa-film"></i> Video Preview</label>
+          <div class="video-container" [ngClass]="selectedAd.orientation">
+            <video
+              *ngIf="selectedAd.videoUrl"
+              [src]="selectedAd.videoUrl"
+              controls
+              class="modal-video"
+            ></video>
+            <div *ngIf="!selectedAd.videoUrl" class="no-video">
+              No video available
+            </div>
+          </div>
+        </div>
+        
+    </div>
+  </div>
+
+</div>
 

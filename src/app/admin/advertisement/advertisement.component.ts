@@ -25,7 +25,7 @@ export class AdvertisementComponent implements OnInit {
   editAdvertisementObject: any = {}; // To store the advertisement being edited
 
   currentPage: number = 1;
-  itemsPerPage: number = 12;
+  itemsPerPage: number = 20;
   filteredAds: any[] = [];
   userRole!: string ;
   userId!: string ;
@@ -42,6 +42,10 @@ export class AdvertisementComponent implements OnInit {
   activeTab: 'all' | 'my' = 'all';
   allAdvertisements: any[] = [];
   myAdvertisements: any[] = [];
+
+  // Add these properties
+  isDetailsModalOpen: boolean = false;
+  selectedAd: any = null;
 
   constructor(
     private adminService: AdminService,
@@ -351,5 +355,16 @@ export class AdvertisementComponent implements OnInit {
   validateYoutubeUrl(url: string): boolean {
     const youtubeRegex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
     return youtubeRegex.test(url);
+  }
+
+  // Add these methods
+  openDetailsModal(ad: any) {
+    this.selectedAd = ad;
+    this.isDetailsModalOpen = true;
+  }
+
+  closeDetailsModal() {
+    this.isDetailsModalOpen = false;
+    this.selectedAd = null;
   }
 }

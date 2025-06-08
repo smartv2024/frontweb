@@ -81,39 +81,70 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Improved Status Indicators */
+/* Approachable Status Indicators */
 .fas.fa-circle {
-  font-size: 12px;
+  font-size: 14px; /* Slightly reduced size */
   margin-right: 8px;
   position: relative;
-  top: -1px;
+  filter: drop-shadow(0 0 2px currentColor);
+  transform: scale(1.1); /* Slightly reduced scale */
+  transition: all 0.3s ease;
+  vertical-align: middle;
+  opacity: 0.9; /* Slightly softer appearance */
 }
 
-/* Enhanced Status Colors */
+/* Status dot hover effects for approachability */
+.status-dot.fas.fa-circle:hover {
+  transform: scale(1.3);
+  opacity: 1;
+  cursor: pointer; /* Indicates interactivity */
+}
+
+/* Status indicator container styling */
+.gods-eye-section .d-flex span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px; /* Add padding */
+  border-radius: 12px; /* Rounded corners */
+  background-color: rgba(255, 255, 255, 0.6); /* Subtle background */
+  margin-right: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border */
+}
+
+/* Hover effect for the entire status indicator */
+.gods-eye-section .d-flex span:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Softer color variants */
 .dot-green {
-  color: #10b981;
-  text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  color: #22c55e; /* Slightly softer green */
+  text-shadow: 0 0 4px rgba(34, 197, 94, 0.2); /* Reduced shadow */
 }
 
 .dot-red {
   color: #ef4444;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  text-shadow: 0 0 4px rgba(239, 68, 68, 0.2); /* Reduced shadow */
 }
 
 .dot-orange {
   color: #f59e0b !important;
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  text-shadow: 0 0 4px rgba(245, 158, 11, 0.2); /* Reduced shadow */
 }
 
-/* Improved Blinking Animation */
+/* Enhanced Blinking Animation */
 @keyframes blinking {
   0% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.5;
-    transform: scale(1.2);
+    opacity: 0.7;
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 8px currentColor);
   }
   100% {
     opacity: 1;
@@ -421,4 +452,227 @@ video {
 
 .d-none {
   display: none !important;
+}
+
+/* Enhanced Small Card Styling - Slightly Reduced */
+.schedule-card {
+  background: white;
+  border-radius: 8px; /* Reduced from 10px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Reduced shadow */
+  transition: all 0.25s ease;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.schedule-card:hover {
+  transform: translateY(-3px); /* Reduced from -5px */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Reduced shadow */
+}
+
+.schedule-card-header {
+  padding: 10px 12px; /* Reduced from 12px 15px */
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.schedule-card-header h6 {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem; /* Reduced from 0.95rem */
+}
+
+.schedule-card-header i {
+  color: #3498db;
+}
+
+.schedule-card-body {
+  padding: 10px 12px; /* Reduced from 12px 15px */
+  font-size: 0.8rem; /* Reduced from 0.85rem */
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.info-label i {
+  color: #6c757d;
+}
+
+.info-value {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* God's Eye Section - Centered Layout */
+.gods-eye-section {
+  background: #f8f9fa;
+  border-radius: 5px;
+  padding: 8px 10px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  text-align: center; /* Center all content */
+}
+
+.section-title {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 5px;
+  margin-bottom: 8px; /* Add space below title */
+  text-align: center; /* Center the title */
+}
+
+/* Center the status indicators container */
+.gods-eye-section .d-flex {
+  justify-content: center !important; /* Override Bootstrap's justify-content-between */
+  gap: 10px; /* Use gap instead of margins for spacing */
+}
+
+/* Status indicator container styling */
+.gods-eye-section .d-flex span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin: 0 3px; /* Even spacing on both sides */
+}
+
+/* Status message styling - centered */
+.status-message {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center content */
+  margin-top: 8px;
+  font-size: 0.75rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Ensure icons are properly centered */
+.status-dot.fas.fa-circle {
+  vertical-align: middle;
+  margin-right: 4px; /* Reduced spacing */
+}
+
+/* Card Footer with Action Buttons */
+.schedule-card-footer {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.view-btn:hover {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+
+.edit-btn:hover {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.refresh-btn:hover {
+  background: #fff8e1;
+  color: #ffc107;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+  color: #f44336;
+}
+
+/* Enhanced Pagination Controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background: #f9fafb;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-size: 0.9rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .schedule-card-body {
+    padding: 10px;
+  }
+  
+  .gods-eye-section {
+    padding: 6px 8px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Adjust size of status dot icons */
+.status-dot.fas.fa-circle {
+  font-size: 14px; /* Larger size */
+  transform: scale(1.3); /* Scale up more */
+  display: inline-block; /* Ensures transform works properly */
+  margin-right: 6px; /* Add a bit more spacing */
+  position: relative;
+  top: -1px; /* Slight vertical alignment adjustment */
 }
