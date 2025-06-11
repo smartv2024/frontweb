@@ -62,6 +62,9 @@ export class AdvertisementComponent implements OnInit {
 
   ngOnInit() {
     this.loadAdvertisements();
+    
+    // Add event listener for escape key
+    document.addEventListener('keydown', this.handleEscapeKey.bind(this));
   }
 
   switchTab(tab: 'all' | 'my') {
@@ -286,9 +289,12 @@ export class AdvertisementComponent implements OnInit {
     );
   }
 
-  closeConfirmDialog() {
+  closeConfirmDialog(): void {
     this.isConfirmDialogOpen = false;
     this.archivingAdId = '';
+    
+    // Re-enable body scrolling when modal closes
+    document.body.style.overflow = 'auto';
   }
 
   navigateToAddAdvertisement() {
@@ -358,13 +364,47 @@ export class AdvertisementComponent implements OnInit {
   }
 
   // Add these methods
-  openDetailsModal(ad: any) {
+  openDetailsModal(ad: any): void {
     this.selectedAd = ad;
     this.isDetailsModalOpen = true;
+    
+    // Disable body scrolling when modal opens
+    document.body.style.overflow = 'hidden';
   }
 
-  closeDetailsModal() {
+  closeDetailsModal(): void {
     this.isDetailsModalOpen = false;
     this.selectedAd = null;
+    
+    // Re-enable body scrolling when modal closes
+    document.body.style.overflow = 'auto';
+  }
+
+  openConfirmDialog(adId: string): void {
+    this.archivingAdId = adId;
+    this.isConfirmDialogOpen = true;
+    
+    // Disable body scrolling when modal opens
+    document.body.style.overflow = 'hidden';
+  }
+
+
+  ngOnDestroy(): void {
+    // Remove event listener
+    document.removeEventListener('keydown', this.handleEscapeKey.bind(this));
+    
+    // Ensure body scrolling is re-enabled
+    document.body.style.overflow = 'auto';
+  }
+
+  private handleEscapeKey(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.isDetailsModalOpen) {
+        this.closeDetailsModal();
+      }
+      if (this.isConfirmDialogOpen) {
+        this.closeConfirmDialog();
+      }
+    }
   }
 }
