@@ -18,7 +18,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   error: string = '';
   pageIndex = 0;
-  pageSize = 20;
+  pageSize: number = 25; // Increased from default to show more items
   totalPages = 0;
   private deviceUpdateSubscription!: Subscription;
 

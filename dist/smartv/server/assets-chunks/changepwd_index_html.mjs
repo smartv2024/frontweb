@@ -13,6 +13,6 @@ export default `<!DOCTYPE html><html lang="en" data-beasties-container><head>
   <app-root ng-version="19.0.5" ngh="0" ng-server-context="ssg"><router-outlet></router-outlet><!----></app-root>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<link rel="modulepreload" href="chunk-Z4GUXJCM.js"><script src="polyfills-EQXJKH7W.js" type="module"></script><script src="main-GHETEEHP.js" type="module"></script>
+<link rel="modulepreload" href="chunk-QPFVXEWX.js"><script src="polyfills-EQXJKH7W.js" type="module"></script><script src="main-WJP2EK2Z.js" type="module"></script>
 
 <script id="ng-state" type="application/json">{"__nghData__":[{"c":{"0":[]}}]}</script></body></html>`;
