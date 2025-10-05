@@ -4,12 +4,12 @@
     <table class="table table-hover table-striped">
       <thead class="table-dark">
         <tr>
-          <th style="width: 15%;">Device</th>
+          <th style="width: 20%;">Device</th>
           <th style="width: 8%;">Ads</th>
-          <th style="width: 20%;">Current Video</th>
-          <th style="width: 12%;">App Status</th>
-          <th style="width: 12%;">Playlist</th>
-          <th style="width: 20%;">Status Message</th>
+          <th style="width: 30%;">Current Video</th>
+          <th style="width: 10%;">App Status</th>
+          <th style="width: 10%;">Playlist</th>
+          <th style="width: 30%;">Status Message</th>
           <th style="width: 13%;">Actions   <button class="btn btn-primary btn-sm" routerLink="/admin/Devices" title="New Schedule">
                 <i class="fas fa-plus-circle"></i>
               </button> </th>
@@ -20,7 +20,7 @@
           <td>
             <div class="d-flex align-items-center">
               <i class="fas fa-tv me-2 text-primary"></i>
-              <span class="fw-medium text-truncate" title="{{ schedule.deviceId.name }}">
+              <span class="fw-medium" title="{{ schedule.deviceId.name }}">
                 {{ schedule.deviceId.name }}
               </span>
             </div>
@@ -29,7 +29,7 @@
             <span class="badge bg-info">{{ schedule.advertisementIds.length }}</span>
           </td>
           <td>
-            <span class="text-truncate d-block" title="{{ schedule.instantData?.titleVideo || 'Waiting...' }}">
+            <span class="d-block" title="{{ schedule.instantData?.titleVideo || 'Waiting...' }}">
               <i class="fas fa-play-circle me-1 text-success"></i>
               {{ schedule.instantData?.titleVideo || 'Waiting...' }}
             </span>
