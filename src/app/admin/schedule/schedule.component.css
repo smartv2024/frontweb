@@ -1281,3 +1281,83 @@ video {
     border-radius: 0;
   }
 }
+
+/* Responsive text sizing for device names, current video, and status messages */
+@media (max-width: 1200px) {
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span,
+  .status-message-text {
+    font-size: 0.4rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span,
+  .status-message-text {
+    font-size: 0.35rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span,
+  .status-message-text {
+    font-size: 0.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span,
+  .status-message-text {
+    font-size: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span,
+  .status-message-text {
+    font-size: 0.25rem;
+  }
+}
+
+/* Mobile column width adjustments */
+@media (max-width: 768px) {
+  .table th:nth-child(1) { width: 25%; } /* Device - increased */
+  .table th:nth-child(2) { width: 6%; }  /* Ads - reduced */
+  .table th:nth-child(3) { width: 30%; } /* Current Video - increased */
+  .table th:nth-child(4) { width: 8%; }  /* App Status - reduced */
+  .table th:nth-child(5) { width: 8%; }  /* Playlist - reduced */
+  .table th:nth-child(6) { width: 15%; } /* Status Message - reduced */
+  .table th:nth-child(7) { width: 8%; }  /* Actions - reduced */
+  
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span {
+    font-size: 0.45rem;
+  }
+  
+  .status-message-text {
+    font-size: 0.4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table th:nth-child(1) { width: 28%; } /* Device - further increased */
+  .table th:nth-child(2) { width: 5%; }  /* Ads - further reduced */
+  .table th:nth-child(3) { width: 32%; } /* Current Video - further increased */
+  .table th:nth-child(4) { width: 7%; }  /* App Status - further reduced */
+  .table th:nth-child(5) { width: 7%; }  /* Playlist - further reduced */
+  .table th:nth-child(6) { width: 14%; } /* Status Message - further reduced */
+  .table th:nth-child(7) { width: 7%; }  /* Actions - further reduced */
+  
+  .table tbody td:first-child span,
+  .table tbody td:nth-child(3) span {
+    font-size: 0.4rem;
+  }
+  
+  .status-message-text {
+    font-size: 0.35rem;
+  }
+}

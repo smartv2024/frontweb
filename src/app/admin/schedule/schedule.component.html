@@ -20,7 +20,7 @@
           <td>
             <div class="d-flex align-items-center">
               <i class="fas fa-tv me-2 text-primary"></i>
-              <span class="fw-medium" title="{{ schedule.deviceId.name }}">
+              <span class="fw-medium" title="{{ schedule.deviceId.name }}" style="white-space: nowrap;">
                 {{ schedule.deviceId.name }}
               </span>
             </div>
@@ -29,7 +29,7 @@
             <span class="badge bg-info">{{ schedule.advertisementIds.length }}</span>
           </td>
           <td>
-            <span class="d-block" title="{{ schedule.instantData?.titleVideo || 'Waiting...' }}">
+            <span class="d-block" title="{{ schedule.instantData?.titleVideo || 'Waiting...' }}" style="white-space: nowrap;">
               <i class="fas fa-play-circle me-1 text-success"></i>
               {{ schedule.instantData?.titleVideo || 'Waiting...' }}
             </span>
@@ -47,7 +47,7 @@
             </div>
           </td>
           <td>
-            <span class="status-message-text" [ngClass]="{
+            <span class="status-message-text" style="white-space: nowrap;" [ngClass]="{
               'text-success': deviceLogs[schedule.deviceId.deviceId] === 'All Good!' || deviceLogs[schedule.deviceId.deviceId] === 'Playlist updated',
               'text-danger': deviceLogs[schedule.deviceId.deviceId] !== 'All Good!' && deviceLogs[schedule.deviceId.deviceId] !== 'Playlist updated'
             }">
