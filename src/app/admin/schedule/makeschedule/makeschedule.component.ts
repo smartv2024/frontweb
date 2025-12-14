@@ -4,6 +4,7 @@ import { AdminService } from '../../admin.service';
 import { SocketService } from '../../../services/socket.service';
 import { catchError, of, Subscription, timeout } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../../AuthService/auth.service';
 
 
 @Component({
@@ -34,6 +35,7 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private socketService: SocketService,
     @Inject(PLATFORM_ID) private platformId: Object,
+    private authService:AuthService
 
   ) {}
 
@@ -64,12 +66,6 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
           this.error = 'Disconnected from server';
         }
       })
-    
-
-    this.socketService.listen<any>('scheduleError').subscribe((error) => {
-      this.error = error.message || 'Error creating schedule';
-      this.loading = false;
-    });
   }
 
   private loadDeviceAndAds(): void {
@@ -103,9 +99,12 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
   }
 
   createSchedule(): void {
+    const userId = this.authService.userId; // Assuming authService has userId
+
     const scheduleData = {
       advertisementIds: this.selectedAds,
       deviceId: this.deviceId,
+      userId:userId,
       startTime: this.startTime,
       playTime: this.playTime,
       repeat: this.repeat,

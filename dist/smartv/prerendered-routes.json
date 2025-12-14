@@ -1,0 +1,20 @@
+{
+  "routes": {
+    "/": {},
+    "/admin": {},
+    "/admin/Devices": {},
+    "/admin/Makeschedule": {},
+    "/admin/Schedules": {},
+    "/admin/addDevices": {},
+    "/admin/addUser": {},
+    "/admin/ads": {},
+    "/admin/archivedAds": {},
+    "/admin/archivedDevices": {},
+    "/admin/newAds": {},
+    "/admin/profile": {},
+    "/admin/schedule/view": {},
+    "/admin/users": {},
+    "/changepwd": {},
+    "/login": {}
+  }
+}

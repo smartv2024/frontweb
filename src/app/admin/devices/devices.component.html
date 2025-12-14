@@ -1,6 +1,20 @@
 <div class="container py-4 ad-list-container">
   <h2 class="list-title text-center">Devices List</h2>
 
+  <!-- Tabs for Admin/SUPERADMIN -->
+  <ul class="nav nav-tabs mb-4" *ngIf="userRole === 'admin' || userRole === 'SUPERADMIN'">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'all'" (click)="switchTab('all')">
+        <i class="fas fa-list me-2"></i>All Devices
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'my'" (click)="switchTab('my')">
+        <i class="fas fa-user-circle me-2"></i>My Devices
+      </a>
+    </li>
+  </ul>
+
   <!-- Search and Add Device Section -->
   <div class="row align-items-center mb-3">
     <div class="col-md-6 text-start">
@@ -17,91 +31,79 @@
           [(ngModel)]="searchTerm"
           (input)="onSearch()"
         />
-        <span class="input-group-text bg-primary text-white">
+        <span class="input-group-text">
           <i class="fas fa-search"></i>
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Devices Table -->
-  <div class="table-responsive shadow-sm rounded">
-    <table class="table table-striped table-hover table-custom">
-      <thead class="table-primary">
-        <tr>
-          <th>#</th>
-          <th>Device ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Orientation</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let device of getPaginatedDevices(); let i = index">
-          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-          <td>{{ device.deviceId }}</td>
-          <td>{{ device.name }}</td>
-          <td>{{ device.description }}</td>
-          <td>{{ device.orientation | titlecase }}</td>
-          <td>
-            <div class="d-flex align-items-center">
-              <i [ngClass]="{
-                'fa-solid fa-link text-success fs-5': device.isPaired === true,
-                'fas fa-times-circle text-danger fs-5': device.isPaired === false
-              }" [title]="device.isPaired ? 'Device Paired' : 'Device Not Paired'"></i>
-              <span class="ms-2 small" [ngClass]="{
-                'text-success': device.isPaired === true,
-                'text-danger': device.isPaired === false
-              }">{{ device.isPaired ? 'Paired' : 'Not Paired' }}</span>
-            </div>
-          </td>
-          <td>
-            <div class="dropdown">
-              <button
-                class="btn btn-secondary btn-sm dropdown-toggle"
-                type="button"
-                id="actionsDropdown{{ device._id }}"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Actions
+  <!-- Devices Grid -->
+  <div class="devices-grid">
+    <div class="device-card" *ngFor="let device of getPaginatedDevices(); let i = index">
+      <div class="device-card-header">
+        <div class="device-number">#{{ (currentPage - 1) * itemsPerPage + i + 1 }}</div>
+        <div class="device-status" [ngClass]="{'paired': device.isPaired, 'unpaired': !device.isPaired}">
+          <i [ngClass]="{
+            'fa-solid fa-link': device.isPaired === true,
+            'fas fa-times-circle': device.isPaired === false
+          }"></i>
+          <span>{{ device.isPaired ? 'Paired' : 'Unpaired' }}</span>
+        </div>
+      </div>
+
+      <div class="device-card-body">
+        <div class="device-info">
+          <div class="info-group">
+            <label>Device ID</label>
+            <h3>{{ device.deviceId }}</h3>
+          </div>
+          <div class="info-group">
+            <label>Name</label>
+            <h4>{{ device.name }}</h4>
+          </div>
+          <button class="btn-details" (click)="openDetailModal(device)">
+          <i class="fas fa-eye"></i> View Details
+          </button>
+        </div>
+      </div>
+
+      <div class="device-card-footer">
+        <button class="action-btn edit" (click)="openEditModal(device)" title="Edit">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="action-btn schedule" 
+                (click)="openScheduleModal(device)"
+                [disabled]="isScheduleButtonDisabled(device)"
+                [title]="getScheduleButtonTooltip(device)">
+          <i class="fas fa-tv"></i>
+        </button>
+        <div class="dropdown">
+          <button class="action-btn more" data-bs-toggle="dropdown" title="More options">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <button class="dropdown-item" (click)="confirmArchive(device._id)">
+                <i class="fas fa-archive me-2"></i> Archive
               </button>
-              <ul class="dropdown-menu dropdown-menu-right" [attr.aria-labelledby]="'actionsDropdown' + device._id">
-                <li>
-                  <button class="dropdown-item" (click)="openEditModal(device)">
-                    <i class="fas fa-edit me-2"></i> Edit
-                  </button>
-                </li>
-                <li>
-                  <button class="dropdown-item" (click)="confirmArchive(device._id)">
-                    <i class="fas fa-archive me-2"></i> Archive
-                  </button>
-                </li>
-                <li>
-                  <button class="dropdown-item" (click)="openScheduleModal(device)">
-                    <i class="fas fa-tv me-2"></i> Schedule
-                  </button>
-                </li>
-                <!-- Updated condition for unpair button -->
-                <li *ngIf="device.isPaired === true">
-                  <button class="dropdown-item text-danger" (click)="unpairageDevice(device.deviceId)" >
-                    <i class="fas fa-unlink me-2"></i> Unpair
-                  </button>
-                </li>
-                <li>
-                  <button class="dropdown-item text-danger" (click)="deleteDevice(device._id)">
-                    <i class="fas fa-trash-alt me-2"></i> Delete
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </li>
+            <li *ngIf="device.isPaired">
+              <button class="dropdown-item" (click)="unpairageDevice(device.deviceId)">
+                <i class="fas fa-unlink me-2"></i> Unpair
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item text-danger" (click)="deleteDevice(device._id)">
+                <i class="fas fa-trash-alt me-2"></i> Delete
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
+
   <!-- Pagination Controls -->
   <div class="d-flex justify-content-between align-items-center mt-4">
     <button
@@ -123,89 +125,72 @@
     </button>
   </div>
 
-  <!-- Schedule Modal -->
-  <div *ngIf="isScheduleModalOpen" class="modal fade show" style="display: block;">
+  <!-- Detail Modal -->
+  <div *ngIf="isDetailModalOpen" class="modal fade show" style="display: block;">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <div class="modal-header bg-info text-white">
-          <h5 class="modal-title">Schedule Ads</h5>
-          <button type="button" class="btn-close" (click)="isScheduleModalOpen = false"></button>
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Device Details</h5>
+          <button type="button" class="btn-close" (click)="closeDetailModal()"></button>
         </div>
         <div class="modal-body">
-          <div *ngIf="ads.length === 0" class="text-center">
-            <p>No advertisements available to schedule.</p>
-          </div>
-          <div *ngIf="ads.length > 0" class="row g-3">
-            <div *ngFor="let ad of ads" class="col-md-4">
-              <div class="card h-100 shadow-sm">
-                <video
-                  *ngIf="ad.videoUrl"
-                  class="card-img-top rounded-top"
-                  [src]="ad.videoUrl"
-                  controls
-                  muted
-                  preload="metadata"
-                ></video>
-                <div class="card-body">
-                  <div class="form-check mb-2">
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
-                      [id]="'checkbox-' + ad._id"
-                      #adCheckbox
-                      [value]="ad._id"
-                      (change)="toggleAdSelection(ad._id, adCheckbox.checked)"
-                    />
-                    <label
-                      class="form-check-label text-truncate"
-                      [for]="'checkbox-' + ad._id"
-                    >
-                      {{ ad.name }}
-                    </label>
-                  </div>
-                  <p class="card-text text-truncate" title="{{ ad.description }}">
-                    {{ ad.description }}
-                  </p>
-                </div>
-              </div>
+          <div class="detail-info">
+            <div class="info-group">
+              <label>Device ID</label>
+              <h3>{{ selectedDevice?.deviceId }}</h3>
+            </div>
+            <div class="info-group">
+              <label>Name</label>
+              <h4>{{ selectedDevice?.name }}</h4>
+            </div>
+            <div class="info-group">
+              <label>Status</label>
+              <p [ngClass]="{'text-success': selectedDevice?.isPaired, 'text-danger': !selectedDevice?.isPaired}">
+                <i [ngClass]="{
+                  'fa-solid fa-link': selectedDevice?.isPaired === true,
+                  'fas fa-times-circle': selectedDevice?.isPaired === false
+                }"></i>
+                {{ selectedDevice?.isPaired ? 'Paired' : 'Not Paired' }}
+              </p>
+            </div>
+            <div class="info-group">
+              <label>Description</label>
+              <p>{{ selectedDevice?.description || 'No description provided' }}</p>
+            </div>
+            <div class="info-group">
+              <label>Orientation</label>
+              <span class="orientation-badge">{{ selectedDevice?.orientation | titlecase }}</span>
+            </div>
+            <div class="info-group">
+              <label>Owner</label>
+              <span class="owner-info">
+                <i class="fas fa-user me-1"></i>
+                {{ selectedDevice?.userId?.username || 'Unknown User' }}
+                <span class="owner-email" *ngIf="selectedDevice?.userId?.email">({{ selectedDevice?.userId?.email }})</span>
+              </span>
+            </div>
+            <div class="info-group">
+              <label>Created At</label>
+              <p>{{ selectedDevice?.createdAt | date:'medium' }}</p>
+            </div>
+            <div class="info-group">
+              <label>Last Updated</label>
+              <p>{{ selectedDevice?.updatedAt | date:'medium' }}</p>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary btn-sm" (click)="navigateToSchedule()">
-            Schedule
-          </button>
+          <button class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
         </div>
       </div>
     </div>
   </div>
-  <!-- Confirmation Modal -->
-  <div *ngIf="isConfirmDialogOpen" class="modal fade show" style="display: block;">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-warning text-white">
-          <h5 class="modal-title">Confirm Archive</h5>
-          <button type="button" class="btn-close" (click)="closeConfirmDialog()"></button>
-        </div>
-        <div class="modal-body">
-          <p>Are you sure you want to archive this device?</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary btn-sm" (click)="closeConfirmDialog()">
-            Cancel
-          </button>
-          <button class="btn btn-danger btn-sm" (click)="archiveDevice()">
-            Archive
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+
   <!-- Edit Device Modal -->
   <div *ngIf="isEditModalOpen" class="modal fade show" style="display: block;">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header bg-warning text-white">
+        <div class="modal-header bg-primary text-white">
           <h5 class="modal-title">Edit Device</h5>
           <button type="button" class="btn-close" (click)="closeEditModal()"></button>
         </div>
@@ -240,7 +225,6 @@
                 id="description"
                 name="description"
                 [(ngModel)]="editDeviceObject.description"
-                required
                 rows="3"
               ></textarea>
             </div>
@@ -260,16 +244,102 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary btn-sm" (click)="closeEditModal()">
-            Cancel
-          </button>
+          <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
           <button 
-            class="btn btn-primary btn-sm" 
+            class="btn btn-primary" 
             (click)="updateDevice()"
             [disabled]="!editForm.form.valid"
           >
             Save Changes
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div *ngIf="isScheduleModalOpen" class="modal fade show" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Schedule Ads for {{ selectedDevice?.name }}</h5>
+          <button type="button" class="btn-close" (click)="isScheduleModalOpen = false"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="ads.length === 0" class="text-center py-4">
+            <p>No advertisements available to schedule.</p>
+            <button class="btn btn-primary mt-2" (click)="navigateToAddAd()">
+              <i class="fas fa-plus me-2"></i>Create New Ad
+            </button>
+          </div>
+          <div *ngIf="ads.length > 0" class="row g-3">
+            <div *ngFor="let ad of ads" class="col-md-4">
+              <div class="card h-100 shadow-sm">
+                <div class="video-container">
+                  <div class="loading-spinner" *ngIf="!ad.videoLoaded">
+                    <div class="spinner"></div>
+                  </div>
+                  <video
+                    *ngIf="ad.videoUrl"
+                    class="card-img-top rounded-top"
+                    [src]="ad.videoUrl"
+                    controls
+                    muted
+                    height="130"
+                    preload="metadata"
+                    (loadeddata)="ad.videoLoaded = true"
+                    [class.hidden]="!ad.videoLoaded"
+                  ></video>
+                </div>
+                <div class="card-body">
+                  <div class="form-check mb-2">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [id]="'checkbox-' + ad._id"
+                      #adCheckbox
+                      [value]="ad._id"
+                      (change)="toggleAdSelection(ad._id, adCheckbox.checked)"
+                    />
+                    <label
+                      class="form-check-label text-truncate"
+                      [for]="'checkbox-' + ad._id"
+                    >
+                      {{ ad.name }}
+                    </label>
+                  </div>
+                  <p class="card-text text-truncate" title="{{ ad.description }}">
+                    {{ ad.description }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="isScheduleModalOpen = false">Cancel</button>
+          <button class="btn btn-primary" (click)="navigateToSchedule()" [disabled]="selectedAds.length === 0">
+            Schedule Selected Ads
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div *ngIf="isConfirmDialogOpen" class="modal fade show" style="display: block;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title">Confirm Action</h5>
+          <button type="button" class="btn-close" (click)="closeConfirmDialog()"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to perform this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeConfirmDialog()">Cancel</button>
+          <button class="btn btn-danger" (click)="archiveDevice()">Confirm</button>
         </div>
       </div>
     </div>

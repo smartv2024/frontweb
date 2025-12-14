@@ -1,111 +1,1321 @@
-/* Schedule Table Styling */
+/* Grand Table Size Adjustments */
+.table-responsive {
+  margin: 0 auto;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
 .table {
   width: 100%;
-  /* Ensures the table spans the full width */
-  margin-bottom: 5rem;
-  border-collapse: collapse;
-  /* Ensures no space between cells */
+  margin-bottom: 3rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
 }
 
-/* Table Head Styling */
+/* Column Width Adjustments */
+.table thead th:nth-child(1) { /* Device Name */
+  width: 22%;
+}
+
+.table thead th:nth-child(2) { /* Advertisements */
+  width: 15%;
+}
+
+.table thead th:nth-child(3) { /* Current Ads */
+  width: 20%;
+}
+
+.table thead th:nth-child(4) { /* God's Eye */
+  width: 28%;
+}
+
+.table thead th:nth-child(5) { /* Actions */
+  width: 15%;
+}
+
+/* Grand Table Head Styling */
 .table thead th {
-  vertical-align: middle;
-  /* Centers text vertically */
-  text-align: center;
-  /* Centers text horizontally */
-  padding: 12px;
-  /* Adds space around text */
-  background-color: white;
-  /* Dark background for table head */
-  color: rgb(21, 1, 1);
-  /* White text for contrast */
+  padding: 18px 15px;
   font-size: 16px;
-  /* Readable font size */
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-bottom: 2px solid #e9ecef;
+  white-space: nowrap;
 }
 
-/* Table Body Styling */
+/* Add subtle dividers between header cells */
+.table thead th:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background-color: #e9ecef;
+}
+
+/* Grand Table Body Styling */
 .table tbody td {
-  /* Centers text vertically */
-  padding: 10px;
-  /* Space around text in cells */
-  text-align: center;
-  /* Centers text horizontally */
-  font-size: 14px;
-  /* Smaller but readable font size */
-  word-break: break-word;
-  /* Breaks long text if necessary */
+  padding: 16px 15px;
+  font-size: 15px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f3f5;
 }
 
 /* Adjust Row Height */
 .table tbody tr {
-  height: 60px;
-  /* Uniform row height */
+  height: auto;
+  min-height: 70px;
+  transition: all 0.2s ease;
 }
-
 
 /* Highlight Hovered Row */
 .table tbody tr:hover {
   background-color: #f8f9fa;
-  /* Light grey background on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Button Styling for Consistency */
-.btn {
-  font-size: 14px;
-  /* Consistent button font size */
-  padding: 5px 10px;
-  /* Adds consistent padding */
+/* Approachable Status Indicators */
+.fas.fa-circle {
+  font-size: 14px; /* Slightly reduced size */
+  margin-right: 8px;
+  position: relative;
+  filter: drop-shadow(0 0 2px currentColor);
+  transform: scale(1.1); /* Slightly reduced scale */
+  transition: all 0.3s ease;
+  vertical-align: middle;
+  opacity: 0.9; /* Slightly softer appearance */
 }
 
-.btn-primary {
-  background-color: #007bff;
-  /* Primary button color */
-  border-color: #007bff;
-  /* Matches border with background */
+/* Status dot hover effects for approachability */
+.status-dot.fas.fa-circle:hover {
+  transform: scale(1.3);
+  opacity: 1;
+  cursor: pointer; /* Indicates interactivity */
 }
 
-.btn-danger {
-  background-color: #dc3545;
-  /* Danger button color */
-  border-color: #dc3545;
-  /* Matches border with background */
+/* Status indicator container styling */
+.gods-eye-section .d-flex span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px; /* Add padding */
+  border-radius: 12px; /* Rounded corners */
+  background-color: rgba(255, 255, 255, 0.6); /* Subtle background */
+  margin-right: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border */
 }
 
-.btn:hover {
-  opacity: 0.9;
-  /* Slightly dim the button on hover */
+/* Hover effect for the entire status indicator */
+.gods-eye-section .d-flex span:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
 }
 
-/* Green dot for Playlist */
-/* Green dot for valid Playlist */
+/* Softer color variants */
 .dot-green {
-  color: #00FF00;
+  color: #22c55e; /* Slightly softer green */
+  text-shadow: 0 0 4px rgba(34, 197, 94, 0.2); /* Reduced shadow */
 }
 
 .dot-red {
-  color: red;
+  color: #ef4444;
+  text-shadow: 0 0 4px rgba(239, 68, 68, 0.2); /* Reduced shadow */
 }
 
-/* Blinking effect for waiting Playlist */
-.dot-blinking {
-  animation: blinking 1s infinite;
-  /* Runs animation infinitely every 1 second */
+.dot-orange {
+  color: #f59e0b !important;
+  text-shadow: 0 0 4px rgba(245, 158, 11, 0.2); /* Reduced shadow */
 }
 
-/* Define the blinking animation */
+.dot-gray {
+  color: #6b7280;
+  text-shadow: 0 0 4px rgba(107, 114, 128, 0.2); /* Reduced shadow */
+}
+
+/* Enhanced Blinking Animation */
 @keyframes blinking {
   0% {
-    color:  #00FF00;
-    /* Start with orange */
+    opacity: 1;
+    transform: scale(1);
   }
-
   50% {
-    color: red;
-    /* Transition to black */
+    opacity: 0.7;
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 8px currentColor);
   }
-
   100% {
-    color:  #00FF00;
-    /* Back to orange */
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dot-blinking {
+  animation: blinking 1.5s infinite;
+}
+
+/* Enhanced Button Styling */
+.btn {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  border-color: #2563eb;
+}
+
+.btn-danger {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  border-color: #dc2626;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Pagination Controls with Hint */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.pagination-controls button {
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* Previous Button Styling */
+.pagination-controls button.prev-button {
+  border-left: 4px solid #3b82f6;
+  padding-left: 30px;
+}
+
+.pagination-controls button.prev-button::before {
+  content: '←';
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  color: #3b82f6;
+}
+
+.pagination-controls button.prev-button:hover::before {
+  transform: translate(-3px, -50%);
+}
+
+/* Next Button with Notification Dot */
+.pagination-controls button.next-button {
+  padding-right: 30px; /* Extra space for the notification */
+  border-right: 4px solid #3b82f6;
+}
+
+.pagination-controls button.next-button.has-new-content {
+  border-right: 4px solid #ef4444;
+  background: linear-gradient(to right, white, #fff5f5);
+}
+
+.pagination-controls button.next-button.has-new-content::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+/* Pulse animation for the notification dot */
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Tooltip for next button */
+.pagination-controls button.next-button.has-new-content {
+  overflow: visible;
+}
+
+.pagination-controls button.next-button.has-new-content::before {
+  content: 'New content available';
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: #ef4444;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: normal;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.pagination-controls button.next-button.has-new-content:hover::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Arrow indicator for next button */
+.pagination-controls button.next-button::after {
+  content: '→';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  color: #3b82f6;
+}
+
+.pagination-controls button.next-button.has-new-content::after {
+  color: #ef4444;
+}
+
+.pagination-controls button.next-button:hover::after {
+  transform: translate(3px, -50%);
+}
+
+/* Page counter styling */
+.pagination-controls span {
+  font-size: 16px;
+  color: #4b5563;
+  font-weight: 500;
+  background: #f3f4f6;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Button hover effects */
+.pagination-controls button:not(:disabled):hover {
+  background: #f9fafb;
+  color: #2563eb;
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-controls button.next-button.has-new-content:hover {
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Nested Table Adjustments */
+.table .table {
+  margin-bottom: 0;
+  box-shadow: none;
+  table-layout: auto;
+}
+
+.table .table th,
+.table .table td {
+  padding: 10px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.table .table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Button Size Adjustments */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+  margin: 3px;
+  border-radius: 6px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .table thead th {
+    padding: 16px 12px;
+    font-size: 15px;
+  }
+  
+  .table tbody td {
+    padding: 14px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 992px) {
+  .table-responsive {
+    max-width: 100%;
+  }
+  
+  .table {
+    table-layout: auto;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 768px) {
+  .table thead th {
+    font-size: 14px;
+    padding: 12px 8px;
+  }
+  
+  .table tbody td {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+  
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 150px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+video {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.d-none {
+  display: none !important;
+}
+
+/* Enhanced Small Card Styling - Slightly Reduced */
+.schedule-card {
+  background: white;
+  border-radius: 8px; /* Reduced from 10px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Reduced shadow */
+  transition: all 0.25s ease;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.schedule-card:hover {
+  transform: translateY(-3px); /* Reduced from -5px */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Reduced shadow */
+}
+
+.schedule-card-header {
+  padding: 10px 12px; /* Reduced from 12px 15px */
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.schedule-card-header h6 {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem; /* Reduced from 0.95rem */
+}
+
+.schedule-card-header i {
+  color: #3498db;
+}
+
+.schedule-card-body {
+  padding: 10px 12px; /* Reduced from 12px 15px */
+  font-size: 0.8rem; /* Reduced from 0.85rem */
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.info-label i {
+  color: #6c757d;
+}
+
+.info-value {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* God's Eye Section - Centered Layout */
+.gods-eye-section {
+  background: #f8f9fa;
+  border-radius: 5px;
+  padding: 8px 10px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  text-align: center; /* Center all content */
+}
+
+.section-title {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 5px;
+  margin-bottom: 8px; /* Add space below title */
+  text-align: center; /* Center the title */
+}
+
+/* Center the status indicators container */
+.gods-eye-section .d-flex {
+  justify-content: center !important; /* Override Bootstrap's justify-content-between */
+  gap: 10px; /* Use gap instead of margins for spacing */
+}
+
+/* Status indicator container styling */
+.gods-eye-section .d-flex span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin: 0 3px; /* Even spacing on both sides */
+}
+
+/* Status message styling - centered */
+.status-message {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center content */
+  margin-top: 8px;
+  font-size: 0.75rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Ensure icons are properly centered */
+.status-dot.fas.fa-circle {
+  vertical-align: middle;
+  margin-right: 4px; /* Reduced spacing */
+}
+
+/* Card Footer with Action Buttons */
+.schedule-card-footer {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #6c757d;
+}
+
+.view-btn:hover {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+
+.edit-btn:hover {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.refresh-btn:hover {
+  background: #fff8e1;
+  color: #ffc107;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+  color: #f44336;
+}
+
+/* Enhanced Pagination Controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background: #f9fafb;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-size: 0.9rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .schedule-card-body {
+    padding: 10px;
+  }
+  
+  .gods-eye-section {
+    padding: 6px 8px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Adjust size of status dot icons */
+.status-dot.fas.fa-circle {
+  font-size: 14px; /* Larger size */
+  transform: scale(1.3); /* Scale up more */
+  display: inline-block; /* Ensures transform works properly */
+  margin-right: 6px; /* Add a bit more spacing */
+  position: relative;
+  top: -1px; /* Slight vertical alignment adjustment */
+}
+
+/* Table styling for schedule list */
+.table-responsive {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  background: #343a40;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 12px 8px;
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  border-color: #e9ecef;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Status dot styling */
+.status-dot {
+  font-size: 12px;
+  filter: drop-shadow(0 0 2px currentColor);
+}
+
+/* Status message styling */
+.status-message-text {
+  font-size: 0.8rem;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* Action buttons */
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+/* Badge styling */
+.badge {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .table {
+    font-size: 0.85rem;
+  }
+  
+  .table thead th {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .table tbody td {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 992px) {
+  .status-message-text {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.8rem;
+  }
+  
+  .table thead th {
+    padding: 8px 4px;
+    font-size: 0.75rem;
+  }
+  
+  .table tbody td {
+    padding: 6px 4px;
+  }
+  
+  .status-message-text {
+    max-width: 100px;
+  }
+}
+
+/* Ultra-Compact Table Container */
+.table-responsive {
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+}
+
+/* Ultra-Compact Table */
+.table {
+  margin-bottom: 0;
+  font-size: 0.75rem;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.2;
+  min-width: 800px; /* Ensure minimum width for all columns */
+}
+
+/* Compact Header */
+.table thead th {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 8px 6px;
+  font-size: 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Ultra-Compact Body */
+.table tbody td {
+  padding: 8px 6px;
+  vertical-align: middle;
+  border-color: rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  background: white;
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+  min-height: 50px;
+  height: auto;
+}
+
+.table tbody tr:hover {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Compact Device Column */
+.table tbody td:first-child .d-flex {
+  background: rgba(52, 152, 219, 0.04);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 2px solid #3498db;
+  min-width: 100px;
+}
+
+.table tbody td:first-child i {
+  width: 18px;
+  height: 18px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(52, 152, 219, 0.1);
+  flex-shrink: 0;
+}
+
+/* Ultra-Compact Status Dots */
+.status-dot {
+  font-size: 8px;
+  filter: drop-shadow(0 0 2px currentColor);
+  margin-right: 4px !important;
+  flex-shrink: 0;
+}
+
+/* Compact Badges */
+.badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Ultra-Compact Status Messages */
+.status-message-text {
+  font-size: 0.65rem;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(248, 249, 250, 0.6);
+  border-left: 2px solid transparent;
+  line-height: 1.2;
+}
+
+.status-message-text.text-success {
+  background: rgba(40, 167, 69, 0.08);
+  border-left-color: #28a745;
+  color: #155724 !important;
+}
+
+.status-message-text.text-danger {
+  background: rgba(220, 53, 69, 0.08);
+  border-left-color: #dc3545;
+  color: #721c24 !important;
+}
+
+/* Full Status Message - No Truncation */
+.status-message-full {
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(248, 249, 250, 0.8);
+  border-left: 3px solid transparent;
+  line-height: 1.3;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.status-message-full.text-success {
+  background: rgba(40, 167, 69, 0.12);
+  border-left-color: #28a745;
+  color: #155724 !important;
+  font-weight: 600;
+}
+
+.status-message-full.text-danger {
+  background: rgba(220, 53, 69, 0.12);
+  border-left-color: #dc3545;
+  color: #721c24 !important;
+  font-weight: 600;
+}
+
+/* Device Name - Better Visibility */
+.device-name-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+/* Video Title - Better Visibility */
+.video-title-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #2c3e50;
+  background: rgba(40, 167, 69, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+  display: inline-block;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+/* Ultra-Compact Action Buttons */
+.btn-sm {
+  padding: 3px 6px;
+  font-size: 0.65rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 1px;
+}
+
+.btn-sm i {
+  font-size: 0.7rem;
+}
+
+/* Compact Video Title - Removed in favor of video-title-text class */
+
+/* Compact App Status and Playlist */
+.table tbody td:nth-child(4) .d-flex,
+.table tbody td:nth-child(5) .d-flex {
+  gap: 2px;
+  justify-content: center;
+  align-items: center;
+}
+
+.table tbody td:nth-child(4) i:not(.status-dot),
+.table tbody td:nth-child(5) i:not(.status-dot) {
+  font-size: 0.7rem;
+}
+
+.table tbody td:nth-child(5) span {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Compact Pagination */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.prev-button, .next-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  color: white;
+}
+
+.pagination-controls span {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #495057;
+  background: rgba(52, 152, 219, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* Column width optimizations for maximum data */
+.table th:nth-child(1) { width: 18%; min-width: 120px; } /* Device */
+.table th:nth-child(2) { width: 8%; min-width: 50px; }   /* Ads */
+.table th:nth-child(3) { width: 25%; min-width: 180px; } /* Current Video */
+.table th:nth-child(4) { width: 10%; min-width: 70px; }  /* App Status */
+.table th:nth-child(5) { width: 10%; min-width: 70px; }  /* Playlist */
+.table th:nth-child(6) { width: 22%; min-width: 160px; } /* Status Message */
+.table th:nth-child(7) { width: 7%; min-width: 60px; }   /* Actions */
+
+/* Enhanced Responsive Design */
+@media (max-width: 1400px) {
+  .table {
+    font-size: 0.7rem;
+    min-width: 750px;
+  }
+  
+  .table thead th {
+    padding: 6px 4px;
+    font-size: 0.65rem;
+  }
+  
+  .table tbody td {
+    padding: 5px 3px;
+  }
+  
+  .status-message-text {
+    max-width: 100px;
+  }
+  
+  .table tbody td:nth-child(3) span {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .table {
+    font-size: 0.65rem;
+    min-width: 700px;
+  }
+  
+  .table thead th {
+    padding: 5px 3px;
+    font-size: 0.6rem;
+  }
+  
+  .table tbody td {
+    padding: 4px 2px;
+  }
+  
+  .status-message-text {
+    max-width: 80px;
+    font-size: 0.6rem;
+  }
+  
+  .table tbody td:nth-child(3) span {
+    max-width: 100px;
+    font-size: 0.6rem;
+  }
+  
+  .table tbody td:first-child span {
+    max-width: 70px;
+    font-size: 0.6rem;
+  }
+  
+  .btn-sm {
+    padding: 2px 4px;
+    min-width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .table {
+    font-size: 0.6rem;
+    min-width: 650px;
+  }
+  
+  .table thead th {
+    padding: 4px 2px;
+    font-size: 0.55rem;
+  }
+  
+  .table tbody td {
+    padding: 3px 2px;
+  }
+  
+  .status-message-text {
+    max-width: 70px;
+    font-size: 0.55rem;
+  }
+  
+  .table tbody td:nth-child(3) span {
+    max-width: 80px;
+    font-size: 0.55rem;
+  }
+  
+  .table tbody td:first-child span {
+    max-width: 60px;
+    font-size: 0.55rem;
+  }
+  
+  .pagination-controls {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .prev-button, .next-button {
+    padding: 4px 8px;
+    font-size: 0.65rem;
+  }
+  
+  .pagination-controls span {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.55rem;
+    min-width: 600px;
+  }
+  
+  .table thead th {
+    padding: 3px 1px;
+    font-size: 0.5rem;
+  }
+  
+  .table tbody td {
+    padding: 2px 1px;
+  }
+  
+  .table tbody tr {
+    height: 35px;
+  }
+  
+  .status-message-text {
+    max-width: 60px;
+    font-size: 0.5rem;
+  }
+  
+  .table tbody td:nth-child(3) span {
+    max-width: 70px;
+    font-size: 0.5rem;
+  }
+  
+  .table tbody td:first-child span {
+    max-width: 50px;
+    font-size: 0.5rem;
+  }
+  
+  .btn-sm {
+    padding: 1px 3px;
+    min-width: 18px;
+    height: 18px;
+  }
+  
+  .btn-sm i {
+    font-size: 0.6rem;
+  }
+  
+  .badge {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    min-width: 16px;
+  }
+  
+  .status-dot {
+    font-size: 6px;
+  }
+  
+  .pagination-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .prev-button, .next-button {
+    width: 100%;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .table {
+    font-size: 0.5rem;
+    min-width: 550px;
+  }
+  
+  .table thead th {
+    padding: 2px 1px;
+    font-size: 0.45rem;
+  }
+  
+  .table tbody td {
+    padding: 1px;
+  }
+  
+  .table tbody tr {
+    height: 30px;
+  }
+  
+  .status-message-text {
+    max-width: 50px;
+    font-size: 0.45rem;
+  }
+  
+  .table tbody td:nth-child(3) span {
+    max-width: 60px;
+    font-size: 0.45rem;
+  }
+  
+  .table tbody td:first-child span {
+    max-width: 40px;
+    font-size: 0.45rem;
+  }
+  
+  .btn-sm {
+    padding: 1px 2px;
+    min-width: 16px;
+    height: 16px;
+  }
+  
+  .btn-sm i {
+    font-size: 0.5rem;
+  }
+  
+  .badge {
+    font-size: 0.45rem;
+    padding: 1px 3px;
+    min-width: 14px;
+  }
+  
+  .status-dot {
+    font-size: 5px;
+  }
+}
+
+/* Horizontal scroll indicator for mobile */
+@media (max-width: 768px) {
+  .table-responsive::after {
+    content: '← Scroll horizontally to see more →';
+    display: block;
+    text-align: center;
+    padding: 8px;
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-top: 1px solid rgba(52, 152, 219, 0.2);
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.table-responsive {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Ensure table doesn't break layout */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for very small screens */
+@media (max-width: 480px) {
+  .table {
+    min-width: 500px;
+  }
+  
+  .table-responsive {
+    margin: 0 -15px;
+    border-radius: 0;
   }
 }

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../admin.service';
 import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../../AuthService/auth.service';
 
 @Component({
   selector: 'app-view-schedule',
@@ -28,7 +29,8 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private adminService: AdminService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService:AuthService
   ) {
     this.updateForm = this.fb.group({
       deviceId: ['', Validators.required],
@@ -94,8 +96,8 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.adminService.getDevices().subscribe({
         next: (response: any) => {
-          this.devices = response.data;
-          this.deviceId=response.data._id
+          this.devices = response.data.filter((device: any) => device.isDeleted === false);
+          this.deviceId = response.data._id;
         },
         error: (error) => {
           console.error('Error loading devices:', error);
@@ -105,7 +107,8 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
   }
 
   private loadAdvertisements(): void {
-      this.adminService.getAds().subscribe({
+const userId=this.authService.userId!
+      this.adminService.getAdvertisementsByUserId(userId).subscribe({
         next: (response: any) => {
           console.log("ADS",response)
           this.advertisements = response.data.filter((ad: { isDeleted: any; }) => ad.isDeleted==false);
@@ -119,11 +122,27 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
 
   private populateForm(): void {
     if (this.schedule) {
-      console.log("deviceID", this.schedule.deviceId)
+      console.log("deviceID", this.schedule.deviceId);
+      
+      // Ensure we have a valid date string before converting
+      let startTimeISO;
+      try {
+        const startDate = new Date(this.schedule.startTime);
+        if (!isNaN(startDate.getTime())) {
+          startTimeISO = startDate.toISOString().slice(0, 16);
+        } else {
+          startTimeISO = new Date().toISOString().slice(0, 16); // fallback to current time
+          console.warn('Invalid start time received, using current time as fallback');
+        }
+      } catch (error) {
+        startTimeISO = new Date().toISOString().slice(0, 16); // fallback to current time
+        console.warn('Error parsing start time, using current time as fallback');
+      }
+
       this.updateForm.patchValue({
         deviceId: this.schedule.deviceId,
         advertisementIds: this.schedule.advertisementIds?.map((ad: any) => ad._id) || [],
-        startTime: new Date(this.schedule.startTime).toISOString().slice(0, 16),
+        startTime: startTimeISO,
         playTime: this.schedule.playTime,
         playMode: this.schedule.playMode || 'sequence',
         repeat: this.schedule.repeat || false
@@ -165,7 +184,7 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
 
     const scheduleId = this.schedulednewId;
    
-
+const userId=this.authService.userId
     this.loading = true;
     const formData = this.updateForm.value;
     console.log(formData)
@@ -173,6 +192,7 @@ export class ViewScheduleComponent implements OnInit, OnDestroy {
     const updateData = {
       "deviceId":formData.deviceId._id,
       "advertisementIds": formData.advertisementIds,
+      "userId":userId,
       "startTime": new Date(formData.startTime).toISOString(),
       "playTime": parseInt(formData.playTime),
       "playMode": formData.playMode,

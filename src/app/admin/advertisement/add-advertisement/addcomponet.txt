@@ -1,0 +1,1283 @@
+import { Component, NgZone } from '@angular/core';
+import { AdminService } from '../../admin.service';
+import { Router } from '@angular/router';
+import { VideoDownloadService } from '../../../services/video-download.service';
+import { map } from 'rxjs';
+import { environment } from '../../../../environnement/enivronement';
+
+@Component({
+  selector: 'app-add-advertisement',
+  templateUrl: './add-advertisement.component.html',
+  styleUrls: ['./add-advertisement.component.scss'],
+  standalone: false
+})
+export class AddAdvertisementComponent {
+  advertisementObject = {
+    name: '',
+    description: '',
+    videoUrl: '',
+    orientation: '',
+  };
+
+  orientations = ['portrait', 'landscape'];
+  videoSources = ['local', 'youtube'];
+  selectedVideoSource = 'local';
+  selectedFile: File | null = null;
+  isSubmitting = false;
+  successMessage = '';
+  errorMessage = '';
+  videoResolutionError = '';
+  youtubeUrl = '';
+  estimatedUploadTime: number | null = null; // new property to store seconds
+
+  // New properties for video quality handling
+  availableQualities: any[] = [];
+  showQualitySelector = false;
+  selectedQuality: string | null = null;
+  videoInfo: any = null;
+
+  uploadProgress = 0;
+  isUploading = false;
+  isVideoProcessed = false;
+  uploadedVideoUrl: string | null = null;
+
+  // Add new property to store advertisementId
+  private advertisementId: string | null = null;
+
+  constructor(
+    private adminService: AdminService,
+    private videoDownloadService: VideoDownloadService,
+    private router: Router,
+    private ngZone: NgZone // Add NgZone for handling async updates
+  ) {}
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      console.log('File selected:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
+      // Check if the file type is a valid video format
+     
+      
+      if (file.size > 100 * 1024 * 1024) {
+        this.errorMessage = 'File size should not exceed 100MB.';
+        console.error('File too large:', file.size);
+        this.selectedFile = null;
+        return;
+      }
+      
+      this.selectedFile = file;
+      this.errorMessage = '';
+      console.log('File accepted:', file.name);
+   //   this.measureUploadSpeedAndEstimateTime(file);
+    }
+  }
+  private async measureUploadSpeedAndEstimateTime(file: File) {
+    try {
+      const dummyData = new FormData();
+      dummyData.append('file', new Blob([new Uint8Array(100000)]));
+
+      const startTime = Date.now();
+      await this.adminService.uploadVideo(dummyData).toPromise();
+      const endTime = Date.now();
+
+      const durationSeconds = (endTime - startTime) / 1000;
+      const dummySizeBits = 100000 * 8;
+      const uploadSpeedBps = dummySizeBits / durationSeconds;
+
+      const fileSizeBits = file.size * 8;
+      const estimatedSeconds = fileSizeBits / uploadSpeedBps;
+
+      this.estimatedUploadTime = Math.round(estimatedSeconds);
+    } catch (error) {
+      console.error('Error estimating upload time:', error);
+      this.estimatedUploadTime = null;
+    }
+  }
+  async processYoutubeUrl() {
+    if (!this.youtubeUrl) {
+      this.errorMessage = 'Please enter a YouTube URL';
+      return;
+    }
+
+    if (!this.videoDownloadService.isValidYoutubeUrl(this.youtubeUrl)) {
+      this.errorMessage = 'Please enter a valid YouTube URL';
+      return;
+    }
+
+    try {
+      this.isSubmitting = true;
+      this.successMessage = 'Processing YouTube video...';
+      this.errorMessage = '';
+      this.showQualitySelector = false;
+      this.availableQualities = [];
+
+      const response = await this.videoDownloadService.downloadYoutubeVideo(this.youtubeUrl).toPromise();
+      
+      if (response && Array.isArray(response) && response.length > 0) {
+        this.videoInfo = response[0];
+        
+        if (this.videoInfo.urls && Array.isArray(this.videoInfo.urls)) {
+          // Filter MP4 videos and sort by quality (highest first)
+          this.availableQualities = this.videoInfo.urls
+            .filter((item: any) => item.extension === 'mp4')
+            .sort((a: any, b: any) => {
+              const qualityA = parseInt(a.quality) || 0;
+              const qualityB = parseInt(b.quality) || 0;
+              return qualityB - qualityA;
+            });
+
+          if (this.availableQualities.length > 0) {
+            this.showQualitySelector = true;
+            this.successMessage = `${this.videoInfo.meta.title} - Select a video quality`;
+          } else {
+            throw new Error('No MP4 formats available for this video');
+          }
+        } else {
+          throw new Error('Invalid video URLs in response');
+        }
+      } else {
+        throw new Error('Invalid response from YouTube API');
+      }
+    } catch (error) {
+      console.error('Error processing YouTube URL:', error);
+      this.errorMessage = (error as Error).message || 'Failed to process YouTube video. Please try again.';
+      this.successMessage = '';
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  onQualitySelected() {
+    if (this.selectedQuality) {
+      const selectedVideo = this.availableQualities.find(q => q.quality === this.selectedQuality);
+      if (selectedVideo) {
+        this.advertisementObject.videoUrl = selectedVideo.url;
+        this.successMessage = `Selected quality: ${selectedVideo.quality}p - Ready to submit`;
+      }
+    }
+  }
+
+  downloadVideo() {
+    if (this.selectedQuality) {
+      const selectedVideo = this.availableQualities.find(q => q.quality === this.selectedQuality);
+      if (selectedVideo && selectedVideo.url) {
+        // Create a temporary anchor element to trigger download
+        const link = document.createElement('a');
+        link.href = selectedVideo.url;
+        link.target = '_blank';
+        link.download = `video_${this.selectedQuality}p.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  }
+
+  async uploadVideo() {
+    console.log('=== UPLOAD VIDEO STARTED ===');
+    
+    if (!this.selectedFile) {
+      console.error('No file selected');
+      this.errorMessage = 'Please select a video file';
+      return;
+    }
+    
+    // Double-check file type before uploading
+  
+    
+    console.log('Selected file:', {
+      name: this.selectedFile.name,
+      type: this.selectedFile.type,
+      size: this.formatBytes(this.selectedFile.size)
+    });
+
+    const formData = new FormData();
+    
+    // Ensure the file is properly named with the correct extension
+    let fileName = this.selectedFile.name;
+    const fileExtension = fileName.split('.').pop()?.toLowerCase();
+    
+    // If the file doesn't have a proper video extension, add one based on the mime type
+    if (!this.isValidVideoExtension(fileExtension)) {
+      console.warn('File has invalid or missing extension:', fileExtension);
+      
+      // Map mime type to extension
+      const extensionMap: {[key: string]: string} = {
+        'video/mp4': 'mp4',
+        'video/mpeg': 'mpeg',
+        'video/x-matroska': 'mkv',
+        'video/x-msvideo': 'avi',
+        'video/quicktime': 'mov',
+        'video/webm': 'webm',
+        'video/x-flv': 'flv',
+        'video/3gpp': '3gp',
+        'video/3gpp2': '3g2',
+        'video/x-ms-wmv': 'wmv'
+      };
+      
+      const newExtension = extensionMap[this.selectedFile.type] || 'mp4';
+      fileName = `${fileName.split('.')[0]}.${newExtension}`;
+      console.log('Renamed file to ensure proper extension:', fileName);
+    }
+    
+    // Create a new File object with the corrected name if needed
+    const fileToUpload = fileName !== this.selectedFile.name 
+      ? new File([this.selectedFile], fileName, { type: this.selectedFile.type }) 
+      : this.selectedFile;
+    
+    formData.append('video', fileToUpload);
+    formData.append('name', this.advertisementObject.name || fileName);
+    formData.append('description', this.advertisementObject.description || '');
+    formData.append('orientation', this.advertisementObject.orientation || '');
+    
+    console.log('Form data prepared with file:', fileName);
+
+    this.uploadProgress = 0;
+    this.isUploading = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    // Get the authentication token
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+      this.errorMessage = 'Authentication token not found';
+      this.isUploading = false;
+      return;
+    }
+
+    try {
+      // Create a unique upload ID to correlate this upload
+      const uploadId = Date.now().toString();
+      formData.append('uploadId', uploadId);
+
+      // Create headers for fetch API
+      const headers = new Headers();
+      headers.append('Authorization', `Bearer ${token}`);
+
+      // Use fetch API for the upload with SSE response
+      const response = await fetch(`${environment.baseUrl}/api/cloudinary-advertisements/upload-with-progress`, {
+        method: 'POST',
+        headers: headers,
+        body: formData,
+       // credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Process the SSE stream
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+
+      // Read the stream
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      const processStream = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) {
+              console.log('Stream complete');
+              break;
+            }
+            
+            // Decode the chunk and add it to our buffer
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process complete SSE messages in the buffer
+            const messages = buffer.split('\n\n');
+            buffer = messages.pop() || ''; // Keep the last incomplete message in the buffer
+            
+            for (const message of messages) {
+              if (message.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(message.substring(6));
+                  
+                  this.ngZone.run(() => {
+                    if (data.event === 'progress') {
+                      this.uploadProgress = data.percentage;
+                      this.successMessage = `Uploading: ${this.uploadProgress}%`;
+                    } else if (data.event === 'complete') {
+                      this.uploadedVideoUrl = data.data.fileInfo.url;
+                      this.advertisementId = data.data.advertisementId;
+                      this.successMessage = data.message || 'Video uploaded successfully!';
+                      this.isVideoProcessed = true;
+                      this.isUploading = false;
+                    } else if (data.event === 'error') {
+                      this.errorMessage = data.message || 'Upload failed';
+                      this.isUploading = false;
+                    }
+                  });
+                } catch (error) {
+                  console.error('Error parsing SSE message:', error, message);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error reading stream:', error);
+          this.ngZone.run(() => {
+            this.errorMessage = 'Error processing upload stream';
+            this.isUploading = false;
+          });
+        }
+      };
+
+      // Start processing the stream
+      processStream();
+    } catch (error) {
+      console.error('Error in upload process:', error);
+      this.errorMessage = 'Failed to upload video. Please try again.';
+      this.isUploading = false;
+    }
+  }
+
+  
+  // Helper function to generate a random alphanumeric string
+  generateRandomString(length: number = 5): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+  
+  // Helper function to sanitize filenames (now replaces (number) with random string)
+  sanitizeFileName(filename: string): string {
+    let sanitized = filename.replace(/\(\d+\)/g, () => this.generateRandomString());
+    sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_');
+    sanitized = sanitized.replace(/_+/g, '_');
+    return sanitized;
+  }
+
+  async addAdvertisement() {
+    if (!this.isVideoProcessed || !this.advertisementId) {
+      this.errorMessage = 'Please process the video first';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    try {
+      this.advertisementObject.videoUrl = this.uploadedVideoUrl!;
+      const response = await this.adminService.completeAdvertisement(
+        this.advertisementId,
+        this.advertisementObject
+      ).toPromise();
+      
+      console.log('Advertisement added:', response);
+      this.successMessage = 'Advertisement added successfully!';
+      this.resetForm();
+    } catch (error) {
+      console.error('Error adding advertisement:', error);
+      this.errorMessage = (error as { error?: { message?: string } }).error?.message || 'Failed to add advertisement. Please try again.';
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  private resetForm() {
+    this.advertisementObject = {
+      name: '',
+      description: '',
+      videoUrl: '',
+      orientation: '',
+    };
+    this.selectedFile = null;
+    this.youtubeUrl = '';
+    this.selectedVideoSource = 'local';
+    this.availableQualities = [];
+    this.showQualitySelector = false;
+    this.selectedQuality = null;
+    this.videoInfo = null;
+    this.advertisementId = null;
+    this.isVideoProcessed = false; // Reset the video processed state
+    this.uploadProgress = 0;
+  }
+
+  // Helper method to validate video file types
+  private isValidVideoType(mimeType: string): boolean {
+    const validVideoTypes = [
+      'video/mp4',
+      'video/mpeg',
+      'video/x-matroska',  // MKV
+      'video/x-msvideo',   // AVI
+      'video/quicktime',   // MOV
+      'video/webm',        // WebM
+      'video/x-flv',       // FLV
+      'video/3gpp',        // 3GP
+      'video/3gpp2',       // 3G2
+      'video/x-ms-wmv'     // WMV
+    ];
+    
+    console.log('Checking if mimetype is valid:', mimeType);
+    return validVideoTypes.includes(mimeType);
+  }
+
+  // Helper method to validate video file extensions
+  private isValidVideoExtension(extension?: string): boolean {
+    if (!extension) return false;
+    
+    const validExtensions = [
+      'mp4', 'mpeg', 'mpg', 'mkv', 'avi', 'mov', 
+      'webm', 'flv', '3gp', '3g2', 'wmv'
+    ];
+    
+    return validExtensions.includes(extension.toLowerCase());
+  }
+
+  // Helper function to format bytes
+  private formatBytes(bytes: number, decimals = 2): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+}
+
+
+
+
+
+
+<div class="page-container">
+  <div class="content-wrapper">
+    <div class="page-header">
+      <h1 class="page-title">Add New Advertisement</h1>
+      <p class="page-subtitle">Upload and configure your advertisement details</p>
+    </div>
+
+    <div class="container card pt-5 mt-5 shadow">
+      <form #advertisementForm="ngForm">
+        <div class="form-group">
+          <label for="videoSource">
+            <i class="fas fa-film me-2"></i>Video Source
+          </label>
+          <select
+            id="videoSource"
+            class="form-control"
+            [(ngModel)]="selectedVideoSource"
+            name="videoSource"
+            required>
+            <option value="local" selected>Upload from Computer</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="selectedVideoSource === 'local'">
+          <label for="videoFile" class="file-upload-label">
+            <i class="fas fa-cloud-upload-alt me-2"></i>Choose Video File
+          </label>
+          <input
+            type="file"
+            id="videoFile"
+            accept="video/*"
+            (change)="onFileSelected($event)"
+            #fileInput>
+          <small class="text-muted d-block">Maximum file size: 100MB</small>
+          <div *ngIf="selectedFile" class="mt-2">
+            <span class="text-success">Selected file: {{ selectedFile.name }}</span>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <!-- Enhanced Progress Bar -->
+          <div class="upload-progress-container" *ngIf="isUploading">
+            <div class="progress mb-2">
+              <div 
+                class="progress-bar progress-bar-striped progress-bar-animated" 
+                role="progressbar" 
+                [style.width.%]="uploadProgress"
+                [attr.aria-valuenow]="uploadProgress" 
+                aria-valuemin="0" 
+                aria-valuemax="100">
+                {{uploadProgress}}%
+              </div>
+            </div>
+            
+            <!-- Detailed progress information -->
+            <div class="upload-details text-center mb-3">
+              <span class="upload-status">
+                <i class="fas fa-sync fa-spin me-2"></i>
+                {{ successMessage || 'Uploading video...' }}
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="estimatedUploadTime && !isUploading" class="text-muted mb-2">
+            Estimated upload time: {{ estimatedUploadTime }} seconds
+          </div>
+
+          <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="successMessage && !isUploading">
+            <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
+            <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+          </div>
+
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
+            <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button 
+            class="btn btn-primary upload-btn" 
+            (click)="uploadVideo()" 
+            [disabled]="isUploading || (!selectedFile && !youtubeUrl) || isVideoProcessed">
+            <i class="fas" [ngClass]="isUploading ? 'fa-spinner fa-spin' : 'fa-upload'"></i>
+            <span class="ms-2">
+              {{ isVideoProcessed ? 'Video Uploaded' : (isUploading ? 'Uploading...' : 'Upload Video') }}
+            </span>
+          </button>
+        </div>
+
+        <div [class.disabled-form]="!isVideoProcessed">
+          <div class="form-group">
+            <label for="name">
+              <i class="fas fa-tag me-2"></i>Advertisement Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              class="form-control"
+              [(ngModel)]="advertisementObject.name"
+              name="name"
+              required
+              [disabled]="!isVideoProcessed">
+          </div>
+
+          <div class="form-group">
+            <label for="description">
+              <i class="fas fa-align-left me-2"></i>Description
+            </label>
+            <textarea
+              id="description"
+              class="form-control"
+              [(ngModel)]="advertisementObject.description"
+              name="description"
+              required
+              [disabled]="!isVideoProcessed">
+            </textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="orientation">
+              <i class="fas fa-mobile-alt me-2"></i>Orientation
+            </label>
+            <select
+              id="orientation"
+              class="form-control"
+              [(ngModel)]="advertisementObject.orientation"
+              name="orientation"
+              required
+              [disabled]="!isVideoProcessed">
+              <option value="">Select orientation</option>
+              <option *ngFor="let orientation of orientations" [value]="orientation">
+                {{orientation}}
+              </option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-success mt-3"
+            (click)="addAdvertisement()"
+            [disabled]="!isVideoProcessed || isSubmitting || !advertisementForm.form.valid">
+            <i class="fas fa-save me-2"></i>
+            {{isSubmitting ? 'Saving...' : 'Save Advertisement'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+// Color Variables
+$error-color: #dc3545;
+$success-color: #28a745;
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$text-primary: #2d3748;
+$text-secondary: #718096;
+$border-radius: 4px;
+$transition: all 0.3s ease;
+
+// Confirmation Dialog
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirmation-content {
+  background: white;
+  padding: 2rem;
+  border-radius: $border-radius;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: scaleIn 0.3s ease-out;
+
+  h3 {
+    color: $text-primary;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+
+  button {
+    padding: 0.75rem 1.5rem;
+    border-radius: $border-radius;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: $transition;
+
+    &.confirm-btn {
+      background: $error-color;
+      color: white;
+
+      &:hover {
+        background: darken($error-color, 10%);
+      }
+    }
+
+    &.cancel-btn {
+      background: $secondary-color;
+      color: white;
+
+      &:hover {
+        background: darken($secondary-color, 10%);
+      }
+    }
+  }
+}
+
+// Waiting/Loading State
+.waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.waiting-content {
+  text-align: center;
+  animation: pulse 2s infinite;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba($primary-color, 0.1);
+    border-left-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  .waiting-text {
+    color: $text-primary;
+    font-weight: 500;
+    margin-top: 1rem;
+  }
+
+  .waiting-subtext {
+    color: $text-secondary;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Progress Bar for waiting states
+.progress-bar-container {
+  width: 100%;
+  max-width: 300px;
+  margin: 1rem auto;
+  background: rgba($primary-color, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  height: 6px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: $primary-color;
+  transition: width 0.3s ease;
+  border-radius: 999px;
+}
+
+// Status indicators
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+
+  &.status-waiting {
+    background: #ffd700;
+    animation: blink 1s infinite;
+  }
+
+  &.status-success {
+    background: $success-color;
+  }
+
+  &.status-error {
+    background: $error-color;
+  }
+}
+
+@keyframes blink {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+// Top Alert Styles
+.upload-alert {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  background: #fff;
+  padding: 1rem 2rem;
+  border-radius: 0 0 $border-radius $border-radius;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 300px;
+  animation: slideDown 0.3s ease-out forwards;
+  border: 1px solid rgba($error-color, 0.2);
+  border-top: none;
+  
+  &::before {
+    content: '\f071'; // Font Awesome warning icon
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: $error-color;
+    font-size: 1.2rem;
+  }
+  
+  .alert-message {
+    color: darken($error-color, 10%);
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .btn-close {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.2rem;
+    transition: $transition;
+    
+    &:hover {
+      color: rgba(0, 0, 0, 0.8);
+    }
+  }
+}
+
+// Slide Down Animation
+@keyframes slideDown {
+  from {
+    transform: translate(-50%, -100%);
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+
+// Mixins
+@mixin glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin card-hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+// Page Layout
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  padding: 2rem 1rem;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header Styles
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  
+  .page-title {
+    font-size: 2.5rem;
+    color: $text-primary;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .page-subtitle {
+    color: $text-secondary;
+    font-size: 1.1rem;
+  }
+}
+
+// Form Container
+.container {
+  @include glass-effect;
+  border-radius: $border-radius;
+  transition: $transition;
+  
+  &:hover {
+    @include card-hover;
+  }
+}
+
+// Form Elements
+.form-group {
+  margin-bottom: 1.5rem;
+  
+  label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 0.75rem;
+    
+    i {
+      margin-right: 0.5rem;
+      color: $primary-color;
+    }
+  }
+  
+  .form-control {
+    border-radius: $border-radius;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: $transition;
+    
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+  }
+
+  // Hide default file input
+  input[type="file"] {
+    display: none;
+  }
+}
+
+// Custom File Upload
+.upload-btn-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 2px dashed #cfd8dc;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+  width: 100%;
+  
+  &:hover {
+    border-color: $primary-color;
+    background: rgba($primary-color, 0.05);
+  }
+  
+  i {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    color: $primary-color;
+  }
+
+  span {
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+// Selected file info
+.selected-file-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba($success-color, 0.1);
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  color: $success-color;
+
+  i {
+    margin-right: 0.5rem;
+  }
+}
+
+// Progress Bar
+.progress {
+  height: 0.75rem;
+  border-radius: $border-radius;
+  background: #e9ecef;
+  overflow: hidden;
+  margin-top: 1rem;
+  
+  .progress-bar {
+    background: linear-gradient(45deg, $primary-color, $secondary-color);
+    transition: width 0.3s ease;
+  }
+}
+
+// Alerts
+.alert {
+  border-radius: $border-radius;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+  
+  i {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  &.alert-success {
+    background: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+    border: 1px solid rgba($success-color, 0.2);
+    
+    &::before {
+      background: $success-color;
+    }
+  }
+  
+  &.alert-danger {
+    background: rgba($error-color, 0.1);
+    color: darken($error-color, 10%);
+    border: 1px solid rgba($error-color, 0.2);
+    
+    &::before {
+      background: $error-color;
+    }
+  }
+
+  .btn-close {
+    margin-left: auto;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: $transition;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// Message Styles
+.message {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  &.info {
+    background: rgba($primary-color, 0.1);
+    color: darken($primary-color, 10%);
+    border: 1px solid rgba($primary-color, 0.2);
+  }
+  
+  &.warning {
+    background: rgba(#ff9800, 0.1);
+    color: darken(#ff9800, 10%);
+    border: 1px solid rgba(#ff9800, 0.2);
+  }
+}
+
+// Buttons
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: $border-radius;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+  
+  i {
+    margin-right: 0.5rem;
+  }
+  
+  &.btn-primary {
+    background: linear-gradient(45deg, $primary-color, $secondary-color);
+    border: none;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba($primary-color, 0.3);
+    }
+  }
+  
+  &.btn-success {
+    background: linear-gradient(45deg, $success-color, darken($success-color, 10%));
+    border: none;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba($success-color, 0.3);
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// Disabled Form State with reduced opacity
+.disabled-form {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+// Alert animation
+@keyframes alertPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.02);
+    box-shadow: 0 12px 30px rgba($error-color, 0.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Alert Overlay
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Enhanced upload progress styles
+.upload-progress-container {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.progress {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  
+  .progress-bar {
+    background: linear-gradient(45deg, #3949ab, #1e88e5);
+    box-shadow: 0 0 10px rgba(57, 73, 171, 0.5);
+  }
+}
+
+.upload-details {
+  font-size: 0.9rem;
+  color: #455a64;
+  
+  .upload-status {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(57, 73, 171, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 500;
+    
+    i {
+      color: #3949ab;
+    }
+  }
+}
+
+// Animation for the progress bar
+@keyframes progressPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(57, 73, 171, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(57, 73, 171, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(57, 73, 171, 0);
+  }
+}
+
+.progress-bar-animated {
+  animation: progressPulse 2s infinite cubic-bezier(0.66, 0, 0, 1) !important;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .page-header {
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+  
+  .container {
+    padding: 1.5rem;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+

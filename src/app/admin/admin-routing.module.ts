@@ -10,6 +10,10 @@ import { ArchiveDevComponent } from './devices/archive-dev/archive-dev.component
 import { MakescheduleComponent } from './schedule/makeschedule/makeschedule.component';
 import { ScheduleComponent } from './schedule/schedule.component';
 import { ViewScheduleComponent } from './schedule/view-schedule/view-schedule.component';
+import { ListUsersComponent } from './users/list-users/list-users.component';
+import { AddUserComponent } from './users/add-user/add-user.component';
+import { ProfileComponent } from './users/profile/profile.component';
+import { RenderMode, ServerRoute } from '@angular/ssr';
 
 const routes: Routes = [
   {
@@ -38,8 +42,16 @@ const routes: Routes = [
         component:DevicesComponent
       },
       {
+        path:'Devices/:userId',
+        component:DevicesComponent
+      },
+      {
         path:'archivedDevices',
         component:ArchiveDevComponent
+      },
+      {
+        path:'archivedDevices/:userId',
+        component:ArchiveDevComponent,
       },
       {
         path:'Makeschedule',
@@ -57,6 +69,18 @@ const routes: Routes = [
         path:'',
         redirectTo:'Schedules',
         pathMatch:'full'
+      },
+      {
+        path: 'users',
+        component: ListUsersComponent
+      },
+      {
+        path: 'addUser',
+        component: AddUserComponent
+      },
+      {
+        path: 'profile',
+        component: ProfileComponent
       }
     ]
   }

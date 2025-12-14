@@ -16,7 +16,11 @@ import { ArchiveDevComponent } from './devices/archive-dev/archive-dev.component
 import { ScheduleComponent } from './schedule/schedule.component';
 import { MakescheduleComponent } from './schedule/makeschedule/makeschedule.component';
 import { ViewScheduleComponent } from './schedule/view-schedule/view-schedule.component';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { AddUserComponent } from './users/add-user/add-user.component';
+import { ProfileComponent } from './users/profile/profile.component';
+import { ListUsersComponent } from './users/list-users/list-users.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -24,21 +28,26 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     NavbarComponent,
     AdvertisementComponent,
     AddAdvertisementComponent,
-    ArchivAdsComponent,
+    ArchivAdsComponent        ,
     DevicesComponent,
     AddDevicesComponent,
     ArchiveDevComponent,
     ScheduleComponent,
     MakescheduleComponent,
-    ViewScheduleComponent
+    ViewScheduleComponent,
+    AddUserComponent,
+    ListUsersComponent,
+    ProfileComponent,
   ],
   imports: [
     CommonModule,
     AdminRoutingModule,
     FormsModule,
+    RouterModule,
     ReactiveFormsModule,
     HttpClientModule,
-    NgbModule
+    NgbModule,
+    NgbDropdownModule
   ],
   providers:[AdminService]
 })

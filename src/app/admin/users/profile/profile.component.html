@@ -1,0 +1,178 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+  </div>
+
+  <!-- Success and Error Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <form (ngSubmit)="updateProfile()" #profileForm="ngForm">
+    <div class="profile-content">
+      <!-- Role Badge -->
+      <div class="role-badge">
+        <i class="fas fa-user-tag"></i> {{ userProfile.role }}
+      </div>
+
+      <!-- Profile Fields -->
+      <div class="form-group">
+        <label for="name">Username</label>
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="userProfile.name"
+            [readonly]="!isEditing"
+            class="form-control"
+            required
+          >
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [(ngModel)]="userProfile.email"
+            [readonly]="!isEditing"
+            class="form-control"
+          >
+          <i class="fas fa-envelope"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <div class="input-wrapper">
+          <input
+            type="tel"
+            id="phone"
+            name="phoneNumber"
+            [(ngModel)]="userProfile.phoneNumber"
+            [readonly]="!isEditing"
+            class="form-control"
+            required
+          >
+          <i class="fas fa-phone"></i>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="btn-edit" 
+          (click)="toggleEdit()"
+        >
+          <i class="fas" [ngClass]="isEditing ? 'fa-times' : 'fa-edit'"></i>
+          {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+        </button>
+
+        <ng-container *ngIf="isEditing">
+        
+
+          <button 
+            type="submit" 
+            class="btn-save" 
+            [disabled]="!profileForm.form.valid || isSubmitting"
+          >
+            <i class="fas fa-save"></i>
+            {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </form>
+
+  <div class="password-section">
+    <h3>Password Management</h3>
+    <button 
+      class="btn btn-secondary" 
+      (click)="togglePasswordForm()"
+    >
+      <i class="fas" [ngClass]="showPasswordForm ? 'fa-times' : 'fa-key'"></i>
+      {{ showPasswordForm ? 'Cancel' : 'Change Password' }}
+    </button>
+
+    <div class="password-form" *ngIf="showPasswordForm">
+      <form (ngSubmit)="resetPassword()" #passwordForm="ngForm">
+        <div class="form-group">
+          <label for="currentPassword">Current Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              [(ngModel)]="currentPassword"
+              required
+              class="form-control"
+              [disabled]="isChangingPassword"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              [(ngModel)]="newPassword"
+              required
+              class="form-control"
+              [disabled]="isChangingPassword"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm New Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              [(ngModel)]="confirmPassword"
+              required
+              class="form-control"
+              [disabled]="isChangingPassword"
+            >
+          </div>
+        </div>
+
+        <div class="alert alert-success" *ngIf="successMessage">
+          <i class="fas fa-check-circle"></i> {{ successMessage }}
+        </div>
+
+        <div class="alert alert-danger" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="!passwordForm.form.valid || isChangingPassword"
+          >
+            <ng-container *ngIf="!isChangingPassword">
+              <i class="fas fa-save"></i> Update Password
+            </ng-container>
+            <ng-container *ngIf="isChangingPassword">
+              <i class="fas fa-spinner fa-spin"></i> Updating...
+            </ng-container>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,252 @@
+<div class="container">
+  <h2 class="list-title">Users Management</h2>
+
+  <!-- Search and Add User Section -->
+  <div class="row g-3 align-items-center">
+    <div class="col-md-6">
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Search users..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
+        />
+      </div>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <button class="add-user-btn" (click)="navigateToAddUser()">
+        <i class="fas fa-user-plus me-2"></i>Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <!-- Users Cards Grid -->
+  <div class="users-grid">
+    <div class="user-card" *ngFor="let user of getCurrentPageUsers()">
+      <div class="user-card-header">
+        <div class="user-status">
+          <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+            {{ user.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <!-- Action Dropdown -->
+        <div class="action-dropdown">
+          <div ngbDropdown class="d-inline-block" container="body">
+            <button class="action-btn" id="actionDropdown" ngbDropdownToggle>
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div ngbDropdownMenu aria-labelledby="actionDropdown" class="dropdown-menu">
+              <!-- Status Toggle -->
+              <button 
+                ngbDropdownItem 
+                [class]="'dropdown-item ' + (user.isActive ? 'deactivate' : 'activate')"
+                (click)="toggleUserStatus(user._id)"
+              >
+                <i class="fas" [class.fa-lock]="!user.isActive" [class.fa-unlock]="user.isActive"></i>
+                {{ user.isActive ? 'Deactivate User' : 'Activate User' }}
+              </button>
+
+              <!-- Reset Password -->
+              <button 
+                ngbDropdownItem 
+                class="dropdown-item"
+                (click)="resetUserPassword(user._id, user.email)"
+              >
+                <i class="fas fa-key"></i>
+                Reset Password
+              </button>
+
+              <!-- Edit User -->
+              <button 
+                ngbDropdownItem 
+                class="dropdown-item"
+                (click)="openEditModal(user)"
+              >
+                <i class="fas fa-edit"></i>
+                Edit User
+              </button>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Role Change -->
+              <ng-container *ngFor="let role of availableRoles">
+                <button 
+                  *ngIf="role !== user.role"
+                  ngbDropdownItem 
+                  class="dropdown-item"
+                  (click)="changeRole(user._id, role)"
+                >
+                  <i class="fas fa-user-shield"></i>
+                  Change Role to {{ role | titlecase }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="user-card-content">
+        <div class="user-info">
+          <div class="info-item">
+            <i class="fas fa-user"></i>
+            <span>{{ user.username }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <span>{{ user.email }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <span>{{ user.phoneNumber }}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-user-tag"></i>
+            <span [class]="getRoleBadgeClass(user.role)">{{ user.role | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-controls">
+    <button
+      class="btn btn-outline-primary btn-sm"
+      [disabled]="currentPage === 1"
+      (click)="previousPage()"
+    >
+      <i class="fas fa-chevron-left me-1"></i> Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button
+      class="btn btn-outline-primary btn-sm"
+      [disabled]="currentPage === totalPages"
+      (click)="nextPage()"
+    >
+      Next <i class="fas fa-chevron-right ms-1"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Add this modal markup after the table -->
+<div class="modal" [class.show]="isEditModalOpen" [style.display]="isEditModalOpen ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-edit"></i> Edit User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form #editForm="ngForm" (ngSubmit)="updateUser()">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                [(ngModel)]="editUserObject.username"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editEmail">Email</label>
+            <div class="input-wrapper">
+              <input
+                type="email"
+                id="editEmail"
+                name="email"
+                [(ngModel)]="editUserObject.email"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-envelope"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editPhone">Phone Number</label>
+            <div class="input-wrapper">
+              <input
+                type="tel"
+                id="editPhone"
+                name="phoneNumber"
+                [(ngModel)]="editUserObject.phoneNumber"
+                class="form-control"
+                required
+              >
+              <i class="fas fa-phone"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editRole">Role</label>
+            <div class="input-wrapper">
+              <select
+                id="editRole"
+                name="role"
+                [(ngModel)]="editUserObject.role"
+                class="form-control"
+                required
+              >
+                <option *ngFor="let role of availableRoles" [value]="role">
+                  {{role | titlecase}}
+                </option>
+              </select>
+              <i class="fas fa-user-shield"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                id="editStatus"
+                name="isActive"
+                [(ngModel)]="editUserObject.isActive"
+                class="form-check-input"
+              >
+              <label class="form-check-label" for="editStatus">
+                Active Account
+              </label>
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="!editForm.form.valid || isSubmitting">
+              <i class="fas fa-save"></i>
+              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add backdrop when modal is open -->
+<div class="modal-backdrop fade show" *ngIf="isEditModalOpen"></div>

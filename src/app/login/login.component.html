@@ -1,43 +1,188 @@
 <div class="login-container">
+  <!-- Simplified animated text - only 2 instances -->
+  <div class="animated-text-container">
+    <div class="text-spawn text-spawn-1">AROMAMASTER</div>
+    <div class="text-spawn text-spawn-5">AROMAMASTER</div>
+  </div>
+
+  <!-- Reduced animated shapes - only 4 essential ones -->
+  <div class="shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-9"></div>
+    <div class="shape shape-13"></div>
+  </div>
+
+  <!-- Optimized video background with lazy loading -->
+  <div class="video-background">
+  </div>  
+  
+  <!-- Centered Form - Prioritized for fast loading -->
+  <div class="form-wrapper">
     <div class="form-container">
-      <h2>Login</h2>
-      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <!-- Logo with eager loading -->
+      <div class="logo-container">
+        <img 
+          src="https://iili.io/2gvDOlt.th.png" 
+          alt="Logo" 
+          class="logo" 
+          loading="eager" 
+          fetchpriority="high"
+          width="120" 
+          height="120"
+        >
+      </div>
+
+      <div class="form-header">
+        <h2>Welcome Back! 👋</h2>
+        <p class="subtitle">Sign in to continue to your account</p>
+      </div>
+      
+      <!-- Reduced form shapes - only 1 essential one -->
+      <div class="form-shapes">
+        <div class="form-shape form-shape-1"></div>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
         <!-- Error Message -->
-        <div *ngIf="errorMessage" class="error-message">
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          <i class="fas fa-exclamation-circle"></i>
           {{ errorMessage }}
         </div>
-  
+
         <!-- Email Field -->
         <div class="form-group">
-          <label for="email">Email:</label>
-          <input
-            id="email"
-            type="text"
-            class="form-control"
-            name="email"
-            [(ngModel)]="username"
-            required
-          />
+          <label for="email">User name</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-user"></i>
+            </span>
+            <input
+              id="email"
+              type="text"
+              class="form-control"
+              name="email"
+              [(ngModel)]="username"
+              placeholder="Enter your user name"
+              required
+              [ngClass]="{'is-invalid': loginForm.submitted && loginForm.form.get('email')?.invalid}"
+              autocomplete="username"
+            />
+          </div>
         </div>
-  
+
         <!-- Password Field -->
         <div class="form-group">
-          <label for="password">Password:</label>
-          <input
-            id="password"
-            type="password"
-            name="password"
-            class="form-control"
-            [(ngModel)]="password"
-            required
-          />
+          <label for="password">Password</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-lock"></i>
+            </span>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              class="form-control"
+              [(ngModel)]="password"
+              placeholder="Enter your password"
+              required
+              [ngClass]="{'is-invalid': loginForm.submitted && loginForm.form.get('password')?.invalid}"
+              autocomplete="current-password"
+            />
+          </div>
         </div>
-  
+
+        <!-- Add Forgot Password Link -->
+        <div class="forgot-password-link">
+          <a href="javascript:void(0)" (click)="openForgotPasswordModal()">
+            <i class="fas fa-key"></i> Forgot Password?
+          </a>
+        </div>
+
         <!-- Submit Button -->
         <button type="submit" class="btn-submit" [disabled]="!loginForm.form.valid || isLoading">
-          <span *ngIf="!isLoading">Login</span>
+          <span *ngIf="!isLoading">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+          </span>
           <div *ngIf="isLoading" class="spinner"></div>
         </button>
       </form>
     </div>
   </div>
+  
+  <!-- Sound toggle button - only show when video is loaded -->
+  <button 
+    *ngIf="videoLoaded"
+    class="sound-toggle-btn" 
+    [class.unmuted]="!isMuted" 
+    (click)="toggleSound()"
+    aria-label="Toggle sound"
+  >
+    <i class="fas" [class.fa-volume-mute]="isMuted" [class.fa-volume-up]="!isMuted"></i>
+  </button>
+</div>
+
+<!-- Improved Forgot Password Modal -->
+<div *ngIf="showForgotPasswordModal" class="modal show">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="btn-close" (click)="closeForgotPasswordModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form #forgotPasswordForm="ngForm" (ngSubmit)="onForgotPasswordSubmit()">
+          <!-- Success Message -->
+          <div *ngIf="forgotPasswordSuccess" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> {{ forgotPasswordSuccess }}
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="forgotPasswordError" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ forgotPasswordError }}
+          </div>
+
+          <div class="form-group">
+            <label for="resetEmail">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <input
+                id="resetEmail"
+                type="email"
+                class="form-control"
+                name="resetEmail"
+                [(ngModel)]="resetEmail"
+                required
+                email
+                [disabled]="isResetting"
+                placeholder="Enter your email address"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              (click)="closeForgotPasswordModal()"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary" 
+              [disabled]="!forgotPasswordForm.form.valid || isResetting"
+            >
+              <span *ngIf="!isResetting">Reset Password</span>
+              <span *ngIf="isResetting" class="spinner-border-sm"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

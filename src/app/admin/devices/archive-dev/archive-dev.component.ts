@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { AdminService } from '../../admin.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../AuthService/auth.service';
 
 @Component({
   selector: 'app-archive-dev',
@@ -10,8 +11,9 @@ import { Router } from '@angular/router';
   styleUrl: './archive-dev.component.css'
 })
 export class ArchiveDevComponent {
- devices: any[] = []; // To store the list of devices
+  devices: any[] = []; // To store the list of devices
   filteredDevices: any[] = []; // To store filtered devices
+  ads: any[] = []; // To store advertisements for scheduling
   searchTerm: string = ''; // Search term for filtering
   currentPage: number = 1; // Current page for pagination
   itemsPerPage: number = 5; // Number of items to display per page
@@ -21,35 +23,69 @@ export class ArchiveDevComponent {
   isEditModalOpen: boolean = false; // To toggle the edit modal
   isConfirmDialogOpen: boolean = false; // To toggle the confirmation dialog
   archivingDeviceId: string = ''; // To store the device ID for archiving
+  selectedDevice: any = null; // To store the device being scheduled for ads
+  selectedAds: string[] = []; // To store selected ad IDs
+  isScheduleModalOpen: boolean = false; // To toggle the schedule modal
+  userId!: string;
 
-  constructor(private adminService: AdminService, private router:Router) {}
+  constructor(
+    private adminService: AdminService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.loadDevices();
+    this.route.params.subscribe(params => {
+      this.userId = params['userId'] || '';
+      this.loadDevices();
+    });
   }
 
   // Fetch devices with isDeleted = false
   loadDevices() {
     this.adminService.getDevices().subscribe(
       (data: any) => {
-        console.log('API Response  un:', data.data);
+        console.log(data)
         if (data && Array.isArray(data.data)) {
-          this.devices = data.data.filter((device: any) => device.isDeleted === true);
-          this.filteredDevices = [...this.devices]; // Initialize filteredDevices with all devices
+          this.devices = data.data.filter(
+            (device: any) => device.isDeleted == true
+            
+          );
+          console.log(this.devices)
+          this.filteredDevices = [...this.devices];
+
           this.calculatePagination();
         } else {
           console.error('Unexpected response format:', data);
-          throw new TypeError('Unexpected response format. Expected an object with a data array.');
         }
       },
       (error) => {
-        console.error('Error fetching devices:', error);
         this.errorMessage =
           error.error?.message || 'Failed to load devices. Please try again.';
       }
     );
   }
-  
+
+  unpairageDevice(deviceId: string) {
+    this.adminService.isPaired(deviceId).subscribe(
+     re=>{
+      this.loadDevices()
+     }
+    );
+  }
+  // Fetch all advertisements
+  loadAds() {
+    this.adminService.getAds().subscribe(
+      (data: any) => {
+        this.ads = (data.data || []).filter((ad: any) => ad.isDeleted === false);
+      },
+      (error) => {
+        this.errorMessage =
+          error.error?.message || 'Failed to load advertisements.';
+      }
+    );
+  }
+
   // Filter devices based on the search term
   onSearch() {
     const lowerCaseTerm = this.searchTerm.toLowerCase();
@@ -65,7 +101,7 @@ export class ArchiveDevComponent {
   // Calculate pagination details
   calculatePagination() {
     this.totalPages = Math.ceil(this.filteredDevices.length / this.itemsPerPage);
-    this.currentPage = Math.min(this.currentPage, this.totalPages || 1); // Adjust currentPage if necessary
+    this.currentPage = Math.min(this.currentPage, this.totalPages || 1);
   }
 
   // Get devices for the current page
@@ -91,29 +127,29 @@ export class ArchiveDevComponent {
 
   // Open the edit modal
   openEditModal(device: any) {
-    this.editDeviceObject = { ...device }; // Create a copy of the device for editing
-    this.isEditModalOpen = true; // Toggle modal open
+    this.editDeviceObject = { ...device };
+    this.isEditModalOpen = true;
   }
-  
+
+  // Close the edit modal
   closeEditModal() {
-    this.isEditModalOpen = false; // Toggle modal closed
+    this.isEditModalOpen = false;
   }
-  
- 
 
   // Update the device
   updateDevice() {
-    this.adminService.updateDevices(this.editDeviceObject._id, this.editDeviceObject).subscribe(
-      () => {
-        this.loadDevices(); // Reload the list
-        this.isEditModalOpen = false; // Close the modal
-      },
-      (error) => {
-        console.error('Error updating device:', error);
-        this.errorMessage =
-          error.error?.message || 'Failed to update device. Please try again.';
-      }
-    );
+    this.adminService
+      .updateDevices(this.editDeviceObject._id, this.editDeviceObject)
+      .subscribe(
+        () => {
+          this.loadDevices();
+          this.isEditModalOpen = false;
+        },
+        (error) => {
+          this.errorMessage =
+            error.error?.message || 'Failed to update device. Please try again.';
+        }
+      );
   }
 
   // Confirm the archiving of a device
@@ -123,7 +159,7 @@ export class ArchiveDevComponent {
   }
 
   // Archive the device
-  unarchiveDevices() {
+ unarchiveDevices() {
     this.adminService.unarchiveDevices(this.archivingDeviceId).subscribe(
       () => {
         this.loadDevices(); // Reload the list
@@ -136,13 +172,51 @@ export class ArchiveDevComponent {
       }
     );
   }
-
   // Close the confirmation dialog
   closeConfirmDialog() {
     this.isConfirmDialogOpen = false;
     this.archivingDeviceId = '';
   }
-  navigateToAddDevice(){
-    this.router.navigate(['/admin/addDevices']);
+
+  // Open the schedule modal
+  openScheduleModal(device: any) {
+    this.selectedDevice = device;
+    this.loadAds();
+    this.isScheduleModalOpen = true;
+  }
+
+  // Close schedule modal and navigate to schedule
+  navigateToSchedule() {
+    this.isScheduleModalOpen = false; // Close modal
+    const queryParams = {
+      deviceId: this.selectedDevice._id,
+      ads: this.selectedAds.join(','),
+    };
+    this.router.navigate(['/admin/Makeschedule'], { queryParams });
+  }
+
+  // Toggle the selection of an ad
+  toggleAdSelection(adId: string, isChecked: boolean) {
+    if (isChecked) {
+      this.selectedAds.push(adId);
+    } else {
+      this.selectedAds = this.selectedAds.filter((id) => id !== adId);
+    }
+  }
+
+  // Navigate to the add device page
+  navigateToAddDevice() {
+    this.router.navigate(['/admin/addDevices']); // Navigate to the 'addDevices' route
+  }
+
+  deleteDevice(id: string) {
+    this.adminService.deleteDeviceById(id).subscribe(
+      () => {
+        this.loadDevices();
+      },
+      (error) => {
+        this.errorMessage = error.error?.message || 'Failed to delete device.';
+      }
+    );
   }
 }

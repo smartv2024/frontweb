@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
   <div class="container">
     <!-- Brand Logo -->
-    <a class="navbar-brand" routerLink="/">
+    <a class="navbar-brand" routerLink="/admin">
       <img
         src="https://iili.io/2gvDOlt.th.png"
         width="60"
@@ -11,7 +11,7 @@
       
     </a>
 
-    <!-- Toggler Button for Mobile View -->
+    <!-- Toggler Button for Mobile jView -->
     <button
       class="navbar-toggler"
       type="button"
@@ -38,7 +38,43 @@
           </a>
         </li>
 
-        <!-- Advertisement Dropdown -->
+        <!-- Users Dropdown - Only visible for admin -->
+        <li class="nav-item dropdown" *ngIf="authService.isAdmin">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="usersDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="fas fa-users me-2"></i> Users
+          </a>
+          <ul
+            class="dropdown-menu shadow-lg"
+            aria-labelledby="usersDropdown"
+          >
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/users"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-list me-2"></i> Users List
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
+                routerLink="/admin/addUser"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-user-plus me-2"></i> Add User
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <!-- Advertisement Dropdown -->
         <li class="nav-item dropdown">
           <a
@@ -73,7 +109,7 @@
                 <i class="fas fa-plus-circle me-2"></i> Add Advertisement
               </a>
             </li>
-            <li>
+           <!--  <li>
               <a
                 class="dropdown-item"
                 routerLink="/admin/archivedAds"
@@ -81,7 +117,7 @@
               >
                 <i class="fas fa-archive me-2"></i> View Archived
               </a>
-            </li>
+            </li> -->
           </ul>
         </li>
 
@@ -128,9 +164,44 @@
           </ul>
         </li>
 
+        <!-- Profile Dropdown -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="profileDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="fas fa-user-circle me-2"></i> Profile
+          </a>
+          <ul
+            class="dropdown-menu shadow-lg"
+            aria-labelledby="profileDropdown"
+          >
+            <li>
+              <a
+                class="dropdown-item"
+                [routerLink]="['/admin/profile']"
+                routerLinkActive="active-link"
+              >
+                <i class="fas fa-id-card me-2"></i> View Profile
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <!-- Logout Button -->
         <li class="nav-item">
-          <a class="btn btn-glow ms-3" href="#">
+          <a class="btn btn-warning btn-sm me-2" href="https://cloud.perfumatic.es/login">
+            <i class="fas fa-cloud me-1"></i> Perfumatic
+          </a>
+        </li>
+        
+        <!-- Logout Button -->
+        <li class="nav-item">
+          <a class="btn btn-glow ms-3" (click)="logout()">
             <i class="fas fa-sign-out-alt me-2"></i> Logout
           </a>
         </li>

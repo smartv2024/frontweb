@@ -45,10 +45,10 @@ export class SocketService {
     this.socket.emit(eventName, data);
   }
 
-  // Join a room
-  joinRoom(roomId: string): void {
-    this.socket.emit('join', roomId);
-    console.log('Joined room:', roomId);
+  // Join a room (register device with backend)
+  joinRoom(deviceId: string): void {
+    this.socket.emit('registerDevice', { deviceId });
+    console.log('Registered device:', deviceId);
   }
 
   // Leave a room

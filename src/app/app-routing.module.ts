@@ -1,7 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
-
+import { AdminComponent } from './admin/admin.component';
+import { ChangepwdComponent } from './changepwd/changepwd.component';
+import { AuthGuard } from './guards/auth.guard';
+import { ForcePasswordChangeGuard } from './guards/force-password-change.guard';
 const routes: Routes = [
   {
     path:'',
@@ -11,6 +14,12 @@ const routes: Routes = [
   {
     path: 'login',
   component:LoginComponent,
+  },
+  {
+    path: 'changepwd',
+    component: ChangepwdComponent,
+    canActivate: [ForcePasswordChangeGuard],
+    
   },
   {
     path:'admin',

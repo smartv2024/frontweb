@@ -1,0 +1,666 @@
+// Color Variables
+$error-color: #dc3545;
+$success-color: #28a745;
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$text-primary: #2d3748;
+$text-secondary: #718096;
+$border-radius: 4px;
+$transition: all 0.3s ease;
+
+// Confirmation Dialog
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirmation-content {
+  background: white;
+  padding: 2rem;
+  border-radius: $border-radius;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: scaleIn 0.3s ease-out;
+
+  h3 {
+    color: $text-primary;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+
+  button {
+    padding: 0.75rem 1.5rem;
+    border-radius: $border-radius;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: $transition;
+
+    &.confirm-btn {
+      background: $error-color;
+      color: white;
+
+      &:hover {
+        background: darken($error-color, 10%);
+      }
+    }
+
+    &.cancel-btn {
+      background: $secondary-color;
+      color: white;
+
+      &:hover {
+        background: darken($secondary-color, 10%);
+      }
+    }
+  }
+}
+
+// Waiting/Loading State
+.waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.waiting-content {
+  text-align: center;
+  animation: pulse 2s infinite;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba($primary-color, 0.1);
+    border-left-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  .waiting-text {
+    color: $text-primary;
+    font-weight: 500;
+    margin-top: 1rem;
+  }
+
+  .waiting-subtext {
+    color: $text-secondary;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Progress Bar for waiting states
+.progress-bar-container {
+  width: 100%;
+  max-width: 300px;
+  margin: 1rem auto;
+  background: rgba($primary-color, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  height: 6px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: $primary-color;
+  transition: width 0.3s ease;
+  border-radius: 999px;
+}
+
+// Status indicators
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+
+  &.status-waiting {
+    background: #ffd700;
+    animation: blink 1s infinite;
+  }
+
+  &.status-success {
+    background: $success-color;
+  }
+
+  &.status-error {
+    background: $error-color;
+  }
+}
+
+@keyframes blink {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+// Top Alert Styles
+.upload-alert {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  background: #fff;
+  padding: 1rem 2rem;
+  border-radius: 0 0 $border-radius $border-radius;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 300px;
+  animation: slideDown 0.3s ease-out forwards;
+  border: 1px solid rgba($error-color, 0.2);
+  border-top: none;
+  
+  &::before {
+    content: '\f071'; // Font Awesome warning icon
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: $error-color;
+    font-size: 1.2rem;
+  }
+  
+  .alert-message {
+    color: darken($error-color, 10%);
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .btn-close {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.2rem;
+    transition: $transition;
+    
+    &:hover {
+      color: rgba(0, 0, 0, 0.8);
+    }
+  }
+}
+
+// Slide Down Animation
+@keyframes slideDown {
+  from {
+    transform: translate(-50%, -100%);
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+
+// Mixins
+@mixin glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin card-hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+// Page Layout
+.page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  padding: 2rem 1rem;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header Styles
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  
+  .page-title {
+    font-size: 2.5rem;
+    color: $text-primary;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .page-subtitle {
+    color: $text-secondary;
+    font-size: 1.1rem;
+  }
+}
+
+// Form Container
+.container {
+  @include glass-effect;
+  border-radius: $border-radius;
+  transition: $transition;
+  
+  &:hover {
+    @include card-hover;
+  }
+}
+
+// Form Elements
+.form-group {
+  margin-bottom: 1.5rem;
+  
+  label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 0.75rem;
+    
+    i {
+      margin-right: 0.5rem;
+      color: $primary-color;
+    }
+  }
+  
+  .form-control {
+    border-radius: $border-radius;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: $transition;
+    
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+  }
+
+  // Hide default file input
+  input[type="file"] {
+    display: none;
+  }
+}
+
+// Custom File Upload
+.upload-btn-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 2px dashed #cfd8dc;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: $transition;
+  width: 100%;
+  
+  &:hover {
+    border-color: $primary-color;
+    background: rgba($primary-color, 0.05);
+  }
+  
+  i {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    color: $primary-color;
+  }
+
+  span {
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+// Selected file info
+.selected-file-info {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba($success-color, 0.1);
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  color: $success-color;
+
+  i {
+    margin-right: 0.5rem;
+  }
+}
+
+// Progress Bar
+.progress {
+  height: 0.75rem;
+  border-radius: $border-radius;
+  background: #e9ecef;
+  overflow: hidden;
+  margin-top: 1rem;
+  
+  .progress-bar {
+    background: linear-gradient(45deg, $primary-color, $secondary-color);
+    transition: width 0.3s ease;
+  }
+}
+
+// Alerts
+.alert {
+  border-radius: $border-radius;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+  
+  i {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  &.alert-success {
+    background: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+    border: 1px solid rgba($success-color, 0.2);
+    
+    &::before {
+      background: $success-color;
+    }
+  }
+  
+  &.alert-danger {
+    background: rgba($error-color, 0.1);
+    color: darken($error-color, 10%);
+    border: 1px solid rgba($error-color, 0.2);
+    
+    &::before {
+      background: $error-color;
+    }
+  }
+
+  .btn-close {
+    margin-left: auto;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: $transition;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// Message Styles
+.message {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  &.info {
+    background: rgba($primary-color, 0.1);
+    color: darken($primary-color, 10%);
+    border: 1px solid rgba($primary-color, 0.2);
+  }
+  
+  &.warning {
+    background: rgba(#ff9800, 0.1);
+    color: darken(#ff9800, 10%);
+    border: 1px solid rgba(#ff9800, 0.2);
+  }
+}
+
+// Buttons
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: $border-radius;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+  
+  i {
+    margin-right: 0.5rem;
+  }
+  
+  &.btn-primary {
+    background: linear-gradient(45deg, $primary-color, $secondary-color);
+    border: none;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba($primary-color, 0.3);
+    }
+  }
+  
+  &.btn-success {
+    background: linear-gradient(45deg, $success-color, darken($success-color, 10%));
+    border: none;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba($success-color, 0.3);
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// Disabled Form State with reduced opacity
+.disabled-form {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+// Alert animation
+@keyframes alertPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.02);
+    box-shadow: 0 12px 30px rgba($error-color, 0.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Alert Overlay
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Enhanced upload progress styles
+.upload-progress-container {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.progress {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  
+  .progress-bar {
+    background: linear-gradient(45deg, #3949ab, #1e88e5);
+    box-shadow: 0 0 10px rgba(57, 73, 171, 0.5);
+  }
+}
+
+.upload-details {
+  font-size: 0.9rem;
+  color: #455a64;
+  
+  .upload-status {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(57, 73, 171, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 500;
+    
+    i {
+      color: #3949ab;
+    }
+  }
+}
+
+// Animation for the progress bar
+@keyframes progressPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(57, 73, 171, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(57, 73, 171, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(57, 73, 171, 0);
+  }
+}
+
+.progress-bar-animated {
+  animation: progressPulse 2s infinite cubic-bezier(0.66, 0, 0, 1) !important;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .page-header {
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+  
+  .container {
+    padding: 1.5rem;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
