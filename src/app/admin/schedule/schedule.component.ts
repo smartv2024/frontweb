@@ -1,11 +1,9 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { SocketService } from '../../services/socket.service';
+import { DeviceStateService, DeviceState } from '../../services/device-state.service';
 import { interval, Subscription } from 'rxjs';
 import { AdminService } from '../admin.service';
-const INACTIVITY_TIMEOUT_APP = 300000; // 5 minutes
-const INACTIVITY_TIMEOUT_SCREEN = 600000; // 10 minutes
-const INACTIVITY_TIMEOUT_AD = 120000; // 2 minutes
 @Component({
   selector: 'app-schedule',
   templateUrl: './schedule.component.html',
@@ -18,337 +16,300 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   error: string = '';
   pageIndex = 0;
-  pageSize: number = 25; // Increased from default to show more items
+  pageSize: number = 25;
   totalPages = 0;
-  private deviceUpdateSubscription!: Subscription;
 
   private subscriptions: Subscription[] = [];
-  private mismatchTimeouts: { [deviceId: string]: any } = {};
-  private sameIndexTimeouts: { [deviceId: string]: any } = {};
-  private lastIndices: { [deviceId: string]: number } = {};
   deviceLogs: { [deviceId: string]: string } = {};
-
-  // Track a 30s inactivity timer per device
-  private inactivityTimers: { [deviceId: string]: any } = {};
-
-  deviceStates: { [deviceId: string]: string } = {};
+  deviceStates: Map<string, DeviceState> = new Map();
   VariableTitleVd: string = 'Your Text Here';
-
-  // Add state control variables
-  private blockAppState: { [key: string]: boolean } = {};
-  private blockAds: { [key: string]: boolean } = {};
-  private intervalId: any;
-
-  // Add these properties to track timers for each device
-  private deviceNoResponseTimers: { [deviceId: string]: ReturnType<typeof setTimeout> } = {};
-  private deviceCounterIntervals: { [deviceId: string]: ReturnType<typeof setInterval> } = {};
 
   constructor(
     private adminService: AdminService,
     private router: Router,
     private socketService: SocketService,
+    private deviceStateService: DeviceStateService,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
-    this.loadSchedules()
+    this.loadSchedules();
     this.updatePagination();
 
-
-    this.socketService.onConnect().subscribe(() => {
-      console.log('Socket is connected, setting up subscriptions');
-      this.subscribeToDeviceUpdates();
-      this.StateApp();    
-
+    // Subscribe to device state changes from service
+    const statesSub = this.deviceStateService.getDeviceStates().subscribe(states => {
+      this.deviceStates = states;
+      this.updateSchedulesWithDeviceStates();
+      this.cdr.detectChanges();
     });
+    this.subscriptions.push(statesSub);
+
+    // Subscribe to socket events immediately if connected, or wait for connection
+    if (this.socketService.isConnected()) {
+      console.log('Socket already connected, setting up subscriptions');
+      this.subscribeToSocketEvents();
+    } else {
+      this.socketService.onConnect().subscribe(() => {
+        console.log('Socket is connected, setting up subscriptions');
+        this.subscribeToSocketEvents();
+      });
+    }
   }
-
-
-
 
   ngOnDestroy(): void {
-    // Clear all device-specific timers
-    Object.keys(this.deviceNoResponseTimers).forEach(deviceId => {
-      clearTimeout(this.deviceNoResponseTimers[deviceId]);
-    });
-    Object.keys(this.deviceCounterIntervals).forEach(deviceId => {
-      clearInterval(this.deviceCounterIntervals[deviceId]);
-    });
-
-    // Clear other subscriptions and timeouts
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    Object.values(this.mismatchTimeouts).forEach((timeout) => clearTimeout(timeout));
-    Object.values(this.sameIndexTimeouts).forEach((timeout) => clearTimeout(timeout));
   }
 
 
-appState=''
-
-
-StateApp(): void {
-  if (!this.socketService.isConnected()) {
-    console.error('Socket is not connected');
-    return;
-  }
-
-  let noResponseTimer: ReturnType<typeof setTimeout>;
-  let counterInterval: ReturnType<typeof setInterval>;
-
-  const startTimer = () => {
-    if (noResponseTimer) clearTimeout(noResponseTimer);
-    if (counterInterval) clearInterval(counterInterval);
-
-    noResponseTimer = setTimeout(() => {
-      console.error(`No response received for 5 minutes (AppStateWeb) for device: ${this.appState}`);
-
-      // Get existing states or initialize empty object
-      const existingStates = JSON.parse(localStorage.getItem('appStateUpdateState') || '{}');
-      
-      // Update or add the state for current device
-      existingStates[this.appState] = {
-        lastUpdateTime: new Date().toISOString(),
-        state: 'red'
-      };
-
-      localStorage.setItem('appStateUpdateState', JSON.stringify(existingStates));
-
-      this.schedules = this.schedules.map((schedule) => {
-        for (const schedule of this.schedules) {
-          if (schedule.deviceId.deviceId === this.appState) {
-            const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-            const playlistColor = this.getPlaylistColor(schedule, schedule.deviceId.deviceId);
-        
-            let logMessage: string;
-            if (appStateColor === 'dot-red' && schedule.instantData?.titleVideo) {
-              logMessage = 'App is in background and playlist is working';
-            } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
-              logMessage = 'ERROR: App is down, check the TV';
-            } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
-              logMessage = 'App is working but Playlist is Blocked, restart the playlist';
-            } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
-              logMessage = 'All Good!';
-            } else {
-              logMessage = 'No app state update for 5 minutes';
-            }
-        
-            this.logState(schedule.deviceId.deviceId, logMessage);
-          }
-        }
-        return schedule;
-      });
-
-      this.updatePagination();
-      this.cdr.detectChanges();
-
-      clearInterval(counterInterval);
-    }, INACTIVITY_TIMEOUT_APP);
-
-    let remainingTime = INACTIVITY_TIMEOUT_APP / 1000;
-    counterInterval = setInterval(() => {
-      console.log(`App State Timer - Device ${this.appState}: ${remainingTime} seconds remaining`);
-      remainingTime--;
-      if (remainingTime < 0) clearInterval(counterInterval);
-    }, 1000);
-  };
-
-  startTimer();
-
-  this.socketService.listen<any>('AppStateWeb').subscribe((data: any) => {
-    console.log(`Received AppStateWeb for device ${data.deviceId}:`, data);
-    this.appState = data.state;
-
-    // Get existing states or initialize empty object
-    const existingStates = JSON.parse(localStorage.getItem('appStateUpdateState') || '{}');
-    
-    // Update or add the state for current device
-    existingStates[data.deviceId] = {
-      lastUpdateTime: new Date().toISOString(),
-      state: data.state === 'foreground' ? 'green' : 'red'
-    };
-
-    localStorage.setItem('appStateUpdateState', JSON.stringify(existingStates));
-
-    this.schedules = this.schedules.map((schedule) => {
-      if (schedule.deviceId.deviceId === data.deviceId) {
-        const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-        const playlistColor = this.getPlaylistColor(schedule, schedule.deviceId.deviceId);
-
-        let logMessage: string;
-        if (appStateColor === 'dot-red' && schedule.instantData?.titleVideo) {
-          logMessage = 'App is in background and playlist is working';
-        } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
-          logMessage = 'ERROR: App is down, check the TV';
-        } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
-          logMessage = 'App is working but Playlist is Blocked, restart the playlist';
-        } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
-          logMessage = 'All Good!';
-        } else {
-          logMessage = 'App state updated';
-        }
-
-        this.logState(data.deviceId, logMessage);
-      }
-      return schedule;
-    });
-
-    this.updatePagination();
-    this.cdr.detectChanges();
-
-    startTimer();
-  });
-}
-subscribeToDeviceUpdates(): void {
-  if (!this.socketService.isConnected()) {
-    console.error('Socket is not connected');
-    return;
-  }
-
-  const startTimerForDevice = (deviceId: string) => {
-    // Clear existing timers for this device if they exist
-    if (this.deviceNoResponseTimers[deviceId]) {
-      clearTimeout(this.deviceNoResponseTimers[deviceId]);
-    }
-    if (this.deviceCounterIntervals[deviceId]) {
-      clearInterval(this.deviceCounterIntervals[deviceId]);
+  // Subscribe to socket events and forward to DeviceStateService
+  private subscribeToSocketEvents(): void {
+    if (!this.socketService.isConnected()) {
+      console.error('Socket is not connected');
+      return;
     }
 
-    // Set new timeout for this device
-    this.deviceNoResponseTimers[deviceId] = setTimeout(() => {
-      console.error(`No response received for 2 minutes (Playlist) for device: ${deviceId}`);
-
-      // Get existing states
-      const existingStates = JSON.parse(localStorage.getItem('PlaylistUpdateState') || '{}');
+    // Listen for appStateChanged events (NEW - primary)
+    const appStateSub = this.socketService.listen<any>('appStateChanged').subscribe((data: any) => {
+      console.log(`✅ Received appStateChanged for device ${data.deviceId}:`, data);
       
-      // Update state for the current device
-      existingStates[deviceId] = {
-        lastUpdateTime: new Date().toISOString(),
-        state: 'red'
-      };
+      this.deviceStateService.updateAppState(data.deviceId, data.state);
 
-      localStorage.setItem('PlaylistUpdateState', JSON.stringify(existingStates));
-
+      // Update schedules array to trigger UI refresh
       this.schedules = this.schedules.map((schedule) => {
-        if (schedule.deviceId.deviceId === deviceId) {
-          const updatedSchedule = {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+          return {
             ...schedule,
-            instantData: schedule.instantData
-              ? { ...schedule.instantData, index: null }
-              : null,
+            instantData: {
+              ...schedule.instantData,
+              appState: data.state,
+              status: deviceHealth.status,
+              color: deviceHealth.color,
+              message: deviceHealth.message,
+            },
           };
-
-          const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-          const playlistColor = this.getPlaylistColor(updatedSchedule, schedule.deviceId.deviceId);
-
-          let logMessage: string;
-          if (appStateColor === 'dot-red' && updatedSchedule.instantData?.index === null) {
-            logMessage = 'ERROR: App is down, check the TV';
-          } else if (appStateColor === 'dot-red' && updatedSchedule.instantData?.titleVideo) {
-            logMessage = 'App is in background and playlist is working';
-          } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
-            logMessage = 'ERROR: App is down, check the TV';
-          } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
-            logMessage = 'App is working but Playlist is Blocked, restart the playlist';
-          } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
-            logMessage = 'All Good!';
-          } else {
-            logMessage = 'No playlist update for 2 minutes';
-          }
-
-          this.logState(schedule.deviceId.deviceId, logMessage);
-          return updatedSchedule;
         }
         return schedule;
       });
 
       this.updatePagination();
       this.cdr.detectChanges();
+    });
+    this.subscriptions.push(appStateSub);
 
-      // Clear the counter interval
-      if (this.deviceCounterIntervals[deviceId]) {
-        clearInterval(this.deviceCounterIntervals[deviceId]);
-        delete this.deviceCounterIntervals[deviceId];
+    // Listen for playerStateChanged events (NEW - primary)
+    const playerStateSub = this.socketService.listen<any>('playerStateChanged').subscribe((data: any) => {
+      console.log(`✅ Received playerStateChanged for device ${data.deviceId}:`, data);
+      
+      // Extract current ad info from playerStateChanged event
+      const currentAd = data.currentAd || {};
+      const adTitle = currentAd.name || 'No title available';
+      const adIndex = currentAd.index !== undefined ? currentAd.index : -1;
+
+      this.deviceStateService.updatePlaylistState(data.deviceId, {
+        title: adTitle,
+        index: adIndex
+      });
+
+      // Update schedule with current ad info AND health status
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+          return {
+            ...schedule,
+            instantData: {
+              ...schedule.instantData,
+              titleVideo: adTitle,
+              index: adIndex >= 0 ? adIndex + 1 : 0,
+              status: deviceHealth.status,
+              color: deviceHealth.color,
+              message: deviceHealth.message,
+              error: false,
+            },
+          };
+        }
+        return schedule;
+      });
+
+      this.updatePagination();
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(playerStateSub);
+
+    // // FALLBACK: Listen for legacy AppStateWeb events (for backward compatibility)
+    // const appStateWebSub = this.socketService.listen<any>('AppStateWeb').subscribe((data: any) => {
+    //   console.log(`⚠️ Received legacy AppStateWeb for device ${data.deviceId}:`, data);
+      
+    //   this.deviceStateService.updateAppState(data.deviceId, data.state);
+
+    //   // Update schedules array to trigger UI refresh
+    //   this.schedules = this.schedules.map((schedule) => {
+    //     if (schedule.deviceId.deviceId === data.deviceId) {
+    //       const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+    //       return {
+    //         ...schedule,
+    //         instantData: {
+    //           ...schedule.instantData,
+    //           appState: data.state,
+    //           status: deviceHealth.status,
+    //           color: deviceHealth.color,
+    //           message: deviceHealth.message,
+    //         },
+    //       };
+    //     }
+    //     return schedule;
+    //   });
+
+    //   this.updatePagination();
+    //   this.cdr.detectChanges();
+    // });
+    // this.subscriptions.push(appStateWebSub);
+
+    // // FALLBACK: Listen for legacy currentAdWeb events (for backward compatibility)
+    // const currentAdWebSub = this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
+    //   console.log(`⚠️ Received legacy currentAdWeb for device ${data.deviceId}:`, data);
+
+    //   this.deviceStateService.updatePlaylistState(data.deviceId, {
+    //     title: data.title || 'No title available',
+    //     index: data.index
+    //   });
+
+    //   // Update schedule with current ad info AND health status
+    //   this.schedules = this.schedules.map((schedule) => {
+    //     if (schedule.deviceId.deviceId === data.deviceId) {
+    //       const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+    //       return {
+    //         ...schedule,
+    //         instantData: {
+    //           ...schedule.instantData,
+    //           titleVideo: data.title || 'No title available for this device',
+    //           index: data.index + 1,
+    //           status: deviceHealth.status,
+    //           color: deviceHealth.color,
+    //           message: deviceHealth.message,
+    //           error: false,
+    //         },
+    //       };
+    //     }
+    //     return schedule;
+    //   });
+
+    //   this.updatePagination();
+    //   this.cdr.detectChanges();
+    // });
+    // this.subscriptions.push(currentAdWebSub);
+
+    // NEW: Listen for playlistStateUpdated events
+    const playlistStateUpdatedSub = this.socketService.listen<any>('playlistStateUpdated').subscribe((data: any) => {
+      console.log(`✅ Received playlistStateUpdated for device ${data.deviceId}:`, data);
+
+      this.deviceStateService.updatePlaylistState(data.deviceId, {
+        title: data.title || 'No title available',
+        index: data.index
+      });
+
+      // Update schedule with playlist info AND health status
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+          return {
+            ...schedule,
+            instantData: {
+              ...schedule.instantData,
+              titleVideo: data.title || 'No title available for this device',
+              index: data.index + 1,
+              status: deviceHealth.status,
+              color: deviceHealth.color,
+              message: deviceHealth.message,
+              error: false,
+            },
+          };
+        }
+        return schedule;
+      });
+
+      this.updatePagination();
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(playlistStateUpdatedSub);
+
+    // NEW: Listen for appStateUpdated events
+    const appStateUpdatedSub = this.socketService.listen<any>('appStateUpdated').subscribe((data: any) => {
+      console.log(`✅ Received appStateUpdated for device ${data.deviceId}:`, data);
+
+      this.deviceStateService.updateAppState(data.deviceId, data.state);
+
+      // Update schedules array to trigger UI refresh
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+          return {
+            ...schedule,
+            instantData: {
+              ...schedule.instantData,
+              appState: data.state,
+              status: deviceHealth.status,
+              color: deviceHealth.color,
+              message: deviceHealth.message,
+            },
+          };
+        }
+        return schedule;
+      });
+
+      this.updatePagination();
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(appStateUpdatedSub);
+
+    // NEW: Listen for deviceHealthUpdated events
+    const deviceHealthUpdatedSub = this.socketService.listen<any>('deviceHealthUpdated').subscribe((data: any) => {
+      console.log(`✅ Received deviceHealthUpdated for device ${data.deviceId}:`, data);
+
+      // Update device health using the service method
+      this.deviceStateService.updateDeviceHealth(data.deviceId, {
+        status: data.status,
+        color: data.color,
+        message: data.message,
+        lastSeen: data.lastSeen
+      });
+
+      // Update schedules array to trigger UI refresh
+      this.schedules = this.schedules.map((schedule) => {
+        if (schedule.deviceId.deviceId === data.deviceId) {
+          const deviceHealth = this.deviceStateService.getDeviceHealth(data.deviceId);
+          return {
+            ...schedule,
+            instantData: {
+              ...schedule.instantData,
+              status: deviceHealth.status,
+              color: deviceHealth.color,
+              message: deviceHealth.message,
+            },
+          };
+        }
+        return schedule;
+      });
+
+      this.updatePagination();
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.push(deviceHealthUpdatedSub);
+  }
+  // Update schedules with device states from service
+  private updateSchedulesWithDeviceStates(): void {
+    this.schedules.forEach(schedule => {
+      const deviceId = schedule.deviceId?.deviceId;
+      if (!deviceId) return;
+
+      const deviceState = this.deviceStates.get(deviceId);
+      if (deviceState) {
+        // Update log message based on device health
+        this.logState(deviceId, deviceState.health.message);
       }
-    }, INACTIVITY_TIMEOUT_AD);
-
-    // Set new counter interval for this device
-    let remainingTime = INACTIVITY_TIMEOUT_AD / 1000;
-    this.deviceCounterIntervals[deviceId] = setInterval(() => {
-      console.log(`Playlist Timer - Device ${deviceId}: ${remainingTime} seconds remaining`);
-      remainingTime--;
-      if (remainingTime < 0) {
-        clearInterval(this.deviceCounterIntervals[deviceId]);
-        delete this.deviceCounterIntervals[deviceId];
-      }
-    }, 1000);
-  };
-
-  // Initialize timers for existing devices
-  const storedState = localStorage.getItem('PlaylistUpdateState');
-  if (storedState) {
-    const states = JSON.parse(storedState);
-    Object.keys(states).forEach(deviceId => {
-      startTimerForDevice(deviceId);
     });
   }
-
-  this.socketService.listen<any>('currentAdWeb').subscribe((data: any) => {
-    console.log(`Received PLAAAYLISTT for device ${data.deviceId}:`, data);
-
-    // Get existing states
-    const existingStates = JSON.parse(localStorage.getItem('PlaylistUpdateState') || '{}');
-    
-    // Update state for the current device
-    existingStates[data.deviceId] = {
-      lastUpdateTime: new Date().toISOString(),
-      state: 'green'
-    };
-
-    localStorage.setItem('PlaylistUpdateState', JSON.stringify(existingStates));
-
-    // Reset timer for this specific device
-    startTimerForDevice(data.deviceId);
-
-    this.schedules = this.schedules.map((schedule) => {
-      if (schedule.deviceId.deviceId === data.deviceId) {
-        const updatedSchedule = {
-          ...schedule,
-          instantData: {
-            titleVideo: data.title || 'No title available for this device',
-            index: data.index + 1,
-            error: false,
-          },
-        };
-
-        const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-        const playlistColor = this.getPlaylistColor(updatedSchedule, schedule.deviceId.deviceId);
-
-        let logMessage: string;
-        if (appStateColor === 'dot-red' && updatedSchedule.instantData?.index === null) {
-          logMessage = 'ERROR: App is down, check the TV';
-        } else if (appStateColor === 'dot-red' && updatedSchedule.instantData?.titleVideo) {
-          logMessage = 'App is in background and playlist is working';
-        } else if (appStateColor === 'dot-red' && playlistColor === 'dot-red') {
-          logMessage = 'ERROR: App is down, check the TV';
-        } else if (appStateColor === 'dot-green' && playlistColor === 'dot-red') {
-          logMessage = 'App is working but Playlist is Blocked, restart the playlist';
-        } else if (appStateColor === 'dot-green' && playlistColor === 'dot-green') {
-          logMessage = 'All Good!';
-        } else {
-          logMessage = 'Playlist updated';
-        }
-
-        this.logState(data.deviceId, logMessage);
-        return updatedSchedule;
-      }
-      return schedule;
-    });
-
-    this.updatePagination();
-    this.cdr.detectChanges();
-    startTimerForDevice(data.deviceId);
-  });
-}
 
 
   loadSchedules(): void {
@@ -450,9 +411,12 @@ subscribeToDeviceUpdates(): void {
   }
 
   private logState(deviceId: string, message: string): void {
-    console.log(`Device ${deviceId}: ${message}`);
-    this.deviceLogs[deviceId] = message;
-    this.cdr.detectChanges(); // Ensure Angular detects the change
+    // Only log if the message has changed to reduce console spam
+    if (this.deviceLogs[deviceId] !== message) {
+      console.log(`Device ${deviceId}: ${message}`);
+      this.deviceLogs[deviceId] = message;
+      this.cdr.detectChanges(); // Ensure Angular detects the change
+    }
   }
 
   updatePagination(): void {
@@ -475,58 +439,17 @@ subscribeToDeviceUpdates(): void {
       this.updatePagination();
     }
   }
-// Add this method to check the appState and return the appropriate color
-// Method to check the app state and return the appropriate color
-public getAppStateColor(appState: string, deviceId: string): string {
-  const storedState = localStorage.getItem('appStateUpdateState');
-  
-  if (storedState) {
-    const states = JSON.parse(storedState);
-    const deviceState = states[deviceId];
-    
-    if (deviceState) {
-      return deviceState.state === 'green' ? 'dot-green' : 'dot-red';
-    }
+  // Get app state color for a device
+  public getAppStateColor(deviceId: string): string {
+    const deviceState = this.deviceStates.get(deviceId);
+    return deviceState?.health.color || 'dot-orange';
   }
 
-  // Default return if no state is found for the device
-  return 'dot-orange';
-}
-
-// Method to check the playlist status and return the appropriate color
-public getPlaylistColor(schedule: any, deviceId: string): string {
-  const appStateColor = this.getAppStateColor(schedule.appState, schedule.deviceId.deviceId);
-  
-  if (appStateColor === 'dot-red') {
-    return 'dot-red';
+  // Get playlist color for a device (same as health color)
+  public getPlaylistColor(deviceId: string): string {
+    const deviceState = this.deviceStates.get(deviceId);
+    return deviceState?.health.color || 'dot-orange';
   }
-
-  const storedState = localStorage.getItem('PlaylistUpdateState');
-  if (storedState) {
-    const states = JSON.parse(storedState);
-    const deviceState = states[deviceId];
-    
-    if (deviceState) {
-      switch (deviceState.state) {
-        case 'green':
-          return 'dot-green';
-        case 'red':
-          return 'dot-red';
-        case 'orange':
-          return 'dot-orange';
-        default:
-          return 'dot-orange';
-      }
-    }
-  }
-
-  if (schedule.instantData?.titleVideo && !schedule.instantData?.error) {
-    return 'dot-green';
-  } else if (!schedule.instantData?.titleVideo) {
-    return 'dot-orange';
-  }
-  return 'dot-red';
-}
 
 onVideoLoaded(schedule: any): void {
   schedule.videoLoaded = true;

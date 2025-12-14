@@ -66,12 +66,6 @@ export class MakescheduleComponent implements OnInit, OnDestroy {
           this.error = 'Disconnected from server';
         }
       })
-    
-
-    this.socketService.listen<any>('scheduleError').subscribe((error) => {
-      this.error = error.message || 'Error creating schedule';
-      this.loading = false;
-    });
   }
 
   private loadDeviceAndAds(): void {

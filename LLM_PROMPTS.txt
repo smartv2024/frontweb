@@ -1,0 +1,204 @@
+===========================================
+PROMPT 1: Fix currentAd Emission Bug (TV App)
+===========================================
+
+Fix the critical bug in the Android TV app where currentAd events are not being sent correctly.
+
+ISSUE:
+The app is trying to emit a raw MediaItem object via Socket.IO, which cannot be serialized. This causes the currentAd event to never reach the backend.
+
+FILE TO MODIFY:
+app/src/main/java/com/kamran/tvadapp/VideoActivity.kt
+
+LOCATION:
+Line 2200-2204 in the onMediaItemTransition listener
+
+CURRENT CODE (BROKEN):
+```kotlin
+backgroundProcessingManager.emitSocketEvent(
+    socketIO = socketIO,
+    eventName = "currentAd",
+    data = it
+)
+```
+
+REPLACEMENT CODE (FIXED):
+```kotlin
+// Use the proper emitCurrentAd method that already handles JSON conversion
+socketIO.emitCurrentAd(it, exoPlayer)
+```
+
+EXPLANATION:
+The socketIO.emitCurrentAd() method already exists and properly converts the MediaItem to JSON with the correct structure {deviceId, title, index}. We should use it instead of trying to emit the raw object.
+
+EXPECTED RESULT:
+After this fix, the TV app will emit currentAd events with proper JSON structure, the backend will receive and relay them as currentAdWeb, and the web app will display current ad information.
+
+
+===========================================
+PROMPT 2: Verify AppState Emitter Starts (TV App)
+===========================================
+
+Ensure the periodic AppState emitter is started when the app initializes.
+
+ISSUE:
+The AppState emission logic exists but may not be started, causing the web app to never receive app state updates.
+
+FILE TO MODIFY:
+app/src/main/java/com/kamran/tvadapp/MyApp.kt
+
+LOCATION:
+In the onCreate() method, after SocketManager initialization (around line 75-80)
+
+CODE TO ADD:
+```kotlin
+// Start periodic AppState emission
+startAppStateEmitter()
+Log.d("MyApp", "✅ AppState emitter started")
+```
+
+CONTEXT:
+The startAppStateEmitter() method already exists in the class (line 150). It sets up a periodic task to emit the app state. We just need to ensure it's called during app initialization.
+
+EXPECTED RESULT:
+The app will periodically emit AppState events (foreground/background), the backend will relay them as AppStateWeb, and the web app will display device app state.
+
+
+===========================================
+PROMPT 3: Add Enhanced Logging (TV App - Optional)
+===========================================
+
+Add enhanced logging to the socket emission logic to help debug any remaining issues.
+
+FILE TO MODIFY:
+app/src/main/java/com/kamran/tvadapp/SocketIO.kt
+
+LOCATION:
+The debounceEmit method (lines 222-238)
+
+CURRENT CODE:
+```kotlin
+private fun debounceEmit(eventName: String, jsonObject: JSONObject) {
+    val currentTime = System.currentTimeMillis()
+    val lastEmitTime = lastEmitTimes[eventName] ?: 0L
+    lastEmiteDStates[eventName] = jsonObject.getString("state")
+    if (currentTime - lastEmitTime >= 1000) {
+        lastEmitTimes[eventName] = currentTime
+        jsonObject.put("deviceId", deviceId)
+        if (::socket.isInitialized && socket.connected()) {
+            socket.emit(eventName, jsonObject)
+            Log.d("SocketIO", "Emitted $eventName event: $jsonObject")
+        } else {
+            Log.d("SocketIO", "Socket not connected. Cannot emit $eventName event.")
+        }
+    } else {
+        Log.d("SocketIO", "Emit skipped for $eventName due to debounce.")
+    }
+}
+```
+
+ENHANCED CODE:
+```kotlin
+private fun debounceEmit(eventName: String, jsonObject: JSONObject) {
+    val currentTime = System.currentTimeMillis()
+    val lastEmitTime = lastEmitTimes[eventName] ?: 0L
+    lastEmiteDStates[eventName] = jsonObject.getString("state")
+    
+    Log.d("SocketIO", "🔍 Debounce check for $eventName: currentTime=$currentTime, lastEmitTime=$lastEmitTime, diff=${currentTime - lastEmitTime}ms")
+    
+    if (currentTime - lastEmitTime >= 1000) {
+        lastEmitTimes[eventName] = currentTime
+        jsonObject.put("deviceId", deviceId)
+        
+        if (::socket.isInitialized && socket.connected()) {
+            socket.emit(eventName, jsonObject)
+            Log.d("SocketIO", "✅ Emitted $eventName event: $jsonObject")
+        } else {
+            Log.e("SocketIO", "❌ Socket not connected. Cannot emit $eventName event. Initialized: ${::socket.isInitialized}, Connected: ${if (::socket.isInitialized) socket.connected() else false}")
+        }
+    } else {
+        Log.d("SocketIO", "⏭️ Emit skipped for $eventName due to debounce (${1000 - (currentTime - lastEmitTime)}ms remaining)")
+    }
+}
+```
+
+EXPLANATION:
+This adds more detailed logging to help debug:
+- When debounce checks happen
+- Why emissions are skipped
+- Socket connection status when emission fails
+- Time remaining until next emission is allowed
+
+EXPECTED RESULT:
+Better visibility into socket emission behavior for debugging.
+
+
+===========================================
+PROMPT 4: Add Backend Logging (Backend - Optional)
+===========================================
+
+Add enhanced logging to the backend to verify events are being received and relayed correctly.
+
+FILE TO MODIFY:
+src/config/socket.js
+
+LOCATION 1:
+Lines 57-64 (currentAd handler)
+
+CURRENT CODE:
+```javascript
+socket.on("currentAd", (data) => {
+  const deviceId = data.deviceId;
+  console.log("Received currentAd event for device:", deviceId);
+  console.log("Data:", data);
+  io.emit("currentAdWeb", data);
+});
+```
+
+ENHANCED CODE:
+```javascript
+socket.on("currentAd", (data) => {
+  const deviceId = data.deviceId;
+  console.log("✅ [BACKEND] Received currentAd event for device:", deviceId);
+  console.log("📦 [BACKEND] currentAd Data:", JSON.stringify(data, null, 2));
+  console.log("📡 [BACKEND] Broadcasting as currentAdWeb to all clients");
+  io.emit("currentAdWeb", data);
+  console.log("✅ [BACKEND] currentAdWeb broadcasted successfully");
+});
+```
+
+LOCATION 2:
+Lines 87-94 (AppState handler)
+
+CURRENT CODE:
+```javascript
+socket.on("AppState", (data) => {
+  const deviceId = data.deviceId;
+  console.log("Received AppState event for device:", deviceId);
+  console.log("Data:", data);
+  io.emit("AppStateWeb", data);
+});
+```
+
+ENHANCED CODE:
+```javascript
+socket.on("AppState", (data) => {
+  const deviceId = data.deviceId;
+  console.log("✅ [BACKEND] Received AppState event for device:", deviceId);
+  console.log("📦 [BACKEND] AppState Data:", JSON.stringify(data, null, 2));
+  console.log("📡 [BACKEND] Broadcasting as AppStateWeb to all clients");
+  io.emit("AppStateWeb", data);
+  console.log("✅ [BACKEND] AppStateWeb broadcasted successfully");
+});
+```
+
+EXPLANATION:
+This adds clear logging to track:
+- When events are received from TV devices
+- The exact data structure received
+- When events are broadcasted to web clients
+- Confirmation of successful broadcast
+
+EXPECTED RESULT:
+Clear visibility into backend event relay for debugging.
+

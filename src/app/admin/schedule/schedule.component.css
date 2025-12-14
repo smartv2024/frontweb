@@ -135,6 +135,11 @@
   text-shadow: 0 0 4px rgba(245, 158, 11, 0.2); /* Reduced shadow */
 }
 
+.dot-gray {
+  color: #6b7280;
+  text-shadow: 0 0 4px rgba(107, 114, 128, 0.2); /* Reduced shadow */
+}
+
 /* Enhanced Blinking Animation */
 @keyframes blinking {
   0% {
@@ -818,18 +823,19 @@ video {
 
 /* Ultra-Compact Body */
 .table tbody td {
-  padding: 6px 4px;
+  padding: 8px 6px;
   vertical-align: middle;
   border-color: rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
   background: white;
-  line-height: 1.1;
-  white-space: nowrap;
+  line-height: 1.3;
+  white-space: normal;
 }
 
 .table tbody tr {
   transition: all 0.2s ease;
-  height: 40px;
+  min-height: 50px;
+  height: auto;
 }
 
 .table tbody tr:hover {
@@ -840,31 +846,22 @@ video {
 /* Compact Device Column */
 .table tbody td:first-child .d-flex {
   background: rgba(52, 152, 219, 0.04);
-  padding: 3px 6px;
+  padding: 4px 8px;
   border-radius: 4px;
   border-left: 2px solid #3498db;
-  min-width: 90px;
+  min-width: 100px;
 }
 
 .table tbody td:first-child i {
-  width: 16px;
-  height: 16px;
-  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: rgba(52, 152, 219, 0.1);
   flex-shrink: 0;
-}
-
-.table tbody td:first-child span {
-  font-size: 0.7rem;
-  font-weight: 500;
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Ultra-Compact Status Dots */
@@ -913,6 +910,62 @@ video {
   color: #721c24 !important;
 }
 
+/* Full Status Message - No Truncation */
+.status-message-full {
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(248, 249, 250, 0.8);
+  border-left: 3px solid transparent;
+  line-height: 1.3;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.status-message-full.text-success {
+  background: rgba(40, 167, 69, 0.12);
+  border-left-color: #28a745;
+  color: #155724 !important;
+  font-weight: 600;
+}
+
+.status-message-full.text-danger {
+  background: rgba(220, 53, 69, 0.12);
+  border-left-color: #dc3545;
+  color: #721c24 !important;
+  font-weight: 600;
+}
+
+/* Device Name - Better Visibility */
+.device-name-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+/* Video Title - Better Visibility */
+.video-title-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #2c3e50;
+  background: rgba(40, 167, 69, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+  display: inline-block;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
 /* Ultra-Compact Action Buttons */
 .btn-sm {
   padding: 3px 6px;
@@ -932,20 +985,7 @@ video {
   font-size: 0.7rem;
 }
 
-/* Compact Video Title */
-.table tbody td:nth-child(3) span {
-  background: rgba(40, 167, 69, 0.04);
-  padding: 2px 4px;
-  border-radius: 3px;
-  border-left: 2px solid #28a745;
-  font-weight: 500;
-  font-size: 0.65rem;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-}
+/* Compact Video Title - Removed in favor of video-title-text class */
 
 /* Compact App Status and Playlist */
 .table tbody td:nth-child(4) .d-flex,
@@ -999,13 +1039,13 @@ video {
 }
 
 /* Column width optimizations for maximum data */
-.table th:nth-child(1) { width: 15%; min-width: 100px; } /* Device */
+.table th:nth-child(1) { width: 18%; min-width: 120px; } /* Device */
 .table th:nth-child(2) { width: 8%; min-width: 50px; }   /* Ads */
-.table th:nth-child(3) { width: 20%; min-width: 150px; } /* Current Video */
-.table th:nth-child(4) { width: 12%; min-width: 80px; }  /* App Status */
-.table th:nth-child(5) { width: 12%; min-width: 80px; }  /* Playlist */
-.table th:nth-child(6) { width: 20%; min-width: 140px; } /* Status Message */
-.table th:nth-child(7) { width: 13%; min-width: 90px; }  /* Actions */
+.table th:nth-child(3) { width: 25%; min-width: 180px; } /* Current Video */
+.table th:nth-child(4) { width: 10%; min-width: 70px; }  /* App Status */
+.table th:nth-child(5) { width: 10%; min-width: 70px; }  /* Playlist */
+.table th:nth-child(6) { width: 22%; min-width: 160px; } /* Status Message */
+.table th:nth-child(7) { width: 7%; min-width: 60px; }   /* Actions */
 
 /* Enhanced Responsive Design */
 @media (max-width: 1400px) {

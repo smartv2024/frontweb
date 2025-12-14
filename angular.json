@@ -121,8 +121,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [],
-            "maxWait": 60000
+            "scripts": []
           }
         }
       }
